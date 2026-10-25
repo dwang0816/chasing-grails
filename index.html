@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chasing Grails</title>
+<meta name="description" content="Where to find One Piece, Pokémon and other TCG product: official drops, drawings, big-box restocks, game-store finds, conventions and card shows.">
+<meta property="og:title" content="Chasing Grails">
+<meta property="og:description" content="Official drops, drawings, restocks, game-store finds, conventions and card shows for One Piece, Pokémon and more.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%86%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root {
+  --font-anthropic-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-anthropic-serif: Georgia, "Times New Roman", serif;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 12px; --cds-gap-lg: 20px; --cds-gap-xl: 28px;
+  --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 18px;
+  --cds-radius: 10px;
+  --cds-font-size-caption: 12.5px; --cds-font-size-body: 14.5px; --cds-font-size-heading: 17px; --cds-font-size-title: 30px;
+  --cds-font-weight-medium: 600; --cds-dur-slow: .2s;
+}
+:root, :root[data-theme="dark"] {
+  --color-bg: #0f0f10; --color-panel: #18181b; --color-fg: #f4f4f5; --color-fg-muted: #a1a1aa;
+  --color-border-line: #2e2e33; --color-ok: #34d399; --color-warn: #fbbf24; --color-bad: #f87171;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --color-bg: #fafaf9; --color-panel: #ffffff; --color-fg: #18181b; --color-fg-muted: #57534e;
+  --color-border-line: #e7e5e4; --color-ok: #059669; --color-warn: #b45309; --color-bad: #dc2626;
+  color-scheme: light;
+}
+html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); -webkit-text-size-adjust: 100%; }
+#dash-root { max-width: 1440px; margin: 0 auto; padding: 20px 16px 48px; box-sizing: border-box; }
+a { color: inherit; }
+.pub-bar { max-width: 1440px; margin: 0 auto; padding: 10px 16px 0; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 12.5px var(--font-anthropic-sans); color: var(--color-fg-muted); }
+.pub-bar b { color: var(--color-fg); font-weight: 600; }
+.pub-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-ok); display: inline-block; margin-right: 6px; }
+.pub-bar.stale .dot { background: var(--color-warn); }
+.dash-skeleton { color: var(--color-fg-muted); }
+</style>
+</head>
+<body>
+<div class="pub-bar" id="pub-bar"><span><i class="dot"></i>Public copy of Chasing Grails · data updated <b id="pub-updated">…</b></span><span>Refreshed around 11 AM and 9 PM ET · Prices and dates link to their sources, so check before you buy</span></div>
+<script>
+// Stand-in for the dashboard runtime: loads data/<id>.json on first read.
+(() => {
+  const listeners = [], calcs = {}, store = {}, inflight = {};
+  const qs = new URLSearchParams(location.search);
+  let params = Object.fromEntries(qs.entries());
+  let queued = false;
+  const notify = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; listeners.forEach((f) => { try { f(); } catch (e) { console.error(e); } }); }); };
+  const load = (id) => {
+    if (store[id] || inflight[id]) return;
+    inflight[id] = fetch('data/' + id + '.json', { cache: 'no-cache' })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((d) => { let rows = Array.isArray(d) ? d : (d.rows || d.data || d.results || []);
+        if (d && d.cols) rows = rows.map((a) => Object.fromEntries(d.cols.map((c, i) => [c, a[i]])));
+        if (id === 'card_shows') rows.forEach((r) => { if (!r.url && r.id) r.url = 'https://www.tcdb.com/CardShows.cfm?MODE=VIEW&ID=' + r.id; }); store[id] = { status: 'ok', data: rows, columns: rows[0] ? Object.keys(rows[0]) : [], meta: [] }; })
+      .catch((e) => { store[id] = { status: 'error', data: [], message: String(e), columns: [], meta: [] }; })
+      .finally(() => { delete inflight[id]; notify(); });
+  };
+  const data = (id) => {
+    if (calcs[id]) {
+      const ins = calcs[id].inputs.map((i) => data(i));
+      const bad = ins.find((x) => x.status !== 'ok');
+      if (bad) return { status: bad.status, data: [], columns: [], meta: [] };
+      try { const out = calcs[id].fn(...ins.map((x) => x.data)); return { status: 'ok', data: out, columns: Array.isArray(out) && out[0] ? Object.keys(out[0]) : [], meta: [] }; }
+      catch (e) { return { status: 'error', data: [], message: String(e), columns: [], meta: [] }; }
+    }
+    if (store[id]) return store[id];
+    load(id);
+    return { status: 'loading', data: [], columns: [], meta: [] };
+  };
+  window.dash = {
+    colors: ['#60a5fa', '#f59e0b', '#a78bfa', '#34d399', '#f472b6', '#22d3ee', '#fb923c', '#a3e635'],
+    calc: (id, def) => { calcs[id] = def; },
+    loader: () => {},
+    data,
+    onData: (fn) => { listeners.push(fn); try { fn(); } catch (e) { console.error(e); } },
+    params: () => ({ ...params }),
+    setParams: (p) => {
+      params = { ...params, ...p };
+      Object.keys(params).forEach((k) => { if (params[k] == null || params[k] === '') delete params[k]; });
+      const u = new URL(location.href); u.search = new URLSearchParams(params).toString();
+      history.replaceState(null, '', u);
+      notify();
+    },
+    resetParams: () => { params = {}; history.replaceState(null, '', location.pathname); notify(); },
+    setLink: () => {},
+    refresh: () => {},
+  };
+  let w = innerWidth; addEventListener('resize', () => { if (innerWidth !== w) { w = innerWidth; notify(); } });
+  fetch('data/meta.json', { cache: 'no-cache' }).then((r) => r.json()).then((m) => {
+    const d = new Date(m.updated);
+    document.getElementById('pub-updated').textContent = d.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    if (Date.now() - d > 36 * 3600e3) document.getElementById('pub-bar').classList.add('stale');
+  }).catch(() => { document.getElementById('pub-updated').textContent = 'unknown'; });
+})();
+</script>
+<div id="dash-root">
+<style>
+.ch { font-family: var(--font-anthropic-sans); display: grid; gap: var(--cds-gap-xl);
+  --acc-official: var(--color-ok); --acc-lgs: var(--color-warn); --acc-market: var(--color-bad); }
+.ch-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 var(--cds-gap-xs); }
+.ch-head p { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); max-width: 60rem; }
+.ch-head b { color: var(--color-fg); font-weight: 600; }
+.ch-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); margin-top: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ch-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--acc); display: inline-block; flex: none; }
+.ch-section-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+.ch-section-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); }
+.ch-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 var(--cds-gap-sm); }
+.ch-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 3px solid var(--acc, var(--color-border-line)); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.ch-card[hidden] { display: none; }
+.ch-card h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: var(--cds-gap-sm); }
+.ch-card h2 .c { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+.ch-badge { font-size: var(--cds-font-size-caption); font-weight: 500; color: var(--acc); border: 1px solid currentColor; border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+.ch-why { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-sm) 0 var(--cds-gap-md); line-height: 1.5; }
+.ch-why b { color: var(--color-fg); font-weight: 600; }
+.acc-official { --acc: var(--acc-official); }
+.acc-bigbox { --acc: var(--acc-bigbox); }
+.acc-lgs { --acc: var(--acc-lgs); }
+.acc-market { --acc: var(--acc-market); }
+.acc-import { --acc: var(--acc-import); }
+.acc-x { --acc: var(--color-fg-muted); }
+
+/* News */
+.ch-news-row { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: var(--cds-gap-md); align-items: stretch; }
+.ch-news-side { display: flex; flex-direction: column; gap: var(--cds-gap-md); min-width: 0; }
+.ch-news-side #bandai-log { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.ch-fill-scroll { flex: 1 1 0; min-height: 14rem; overflow: auto; }
+.ch-fill-scroll th { position: sticky; top: 0; background: var(--color-panel); z-index: 1; }
+.ch-coming-scroll { max-height: 13rem; overflow: auto; }
+.ch-scroll.ch-draw-scroll { max-height: 15rem; }
+.ch-coming-scroll th { position: sticky; top: 0; background: var(--color-panel); z-index: 1; }
+.ch { --rg-queens: #38bdf8; --rg-brooklyn: #f472b6; --rg-manhattan: #facc15; --rg-si: #fb923c; --rg-li: #4ade80; --rg-north: #a78bfa; }
+.ch-shows td.sh-when { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ch-shows tr.sh-today td:first-child { box-shadow: inset 3px 0 0 #34d399; }
+.ch-shows tr.sh-sports td { opacity: .72; }
+.ch-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: 999px; overflow: hidden; margin: 0 0 var(--cds-gap-sm); }
+.ch-seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: 2px 12px; border: 0; background: transparent; color: var(--color-fg-muted); cursor: pointer; }
+.ch-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+.ch-months { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 var(--cds-gap-sm); }
+.ch-month { font: inherit; font-size: var(--cds-font-size-caption); padding: 2px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg-muted); cursor: pointer; font-variant-numeric: tabular-nums; }
+.ch-month .n { opacity: .7; margin-left: 4px; }
+.ch-month[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.ch-month:disabled { opacity: .4; cursor: default; }
+@media (max-width: 1000px) { .ch-news-row { grid-template-columns: 1fr; } }
+.ch-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0; }
+.ch-window { background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); }
+.ch-window .w-name { font-weight: 600; font-size: var(--cds-font-size-body); }
+.ch-window .w-when { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); margin: 2px 0; }
+.ch-window .w-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-live { display: inline-block; margin-top: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); border-radius: 999px; padding: 1px 9px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+.ch-live.on { color: var(--color-ok); border-color: currentColor; }
+.ch-coming { margin-bottom: var(--cds-gap-md); }
+.acc-draw { --acc: var(--acc-draw); }
+.ch-who { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); margin-bottom: var(--cds-gap-md); }
+.ch-who-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); font-weight: 500; border: 1px solid var(--color-border-line); border-radius: 999px; padding: 2px 10px; background: var(--color-bg); }
+.ch-who-item { flex-wrap: wrap; } .ch-who-item em { font-style: normal; font-weight: 400; color: var(--color-fg-muted); }
+.ch-who-item.on .ch-dot { background: var(--color-ok); }
+.ch-who-item.soon .ch-dot { background: var(--color-warn); }
+.ch-who-item.soon { border-style: dashed; }
+.ch-open::before { content: "Open / TBA"; }
+.kw { color: color-mix(in srgb, var(--k) 85%, var(--color-fg)); background: color-mix(in srgb, var(--k) 15%, transparent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--k) 70%, transparent); border-radius: 3px; padding: 0 3px; font-weight: 700; }
+.ch-pill.est { border-style: dashed; }
+.ch-verify { display: inline-block; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 600; border-radius: 999px; padding: 0 8px; border: 1px solid currentColor; cursor: help; }
+.ch-verify.ok { color: var(--color-ok); }
+.ch-verify.ok::before { content: "✓ "; }
+.ch-verify.ok::after { content: " sources"; font-weight: 400; }
+.ch-verify.unconf { color: var(--color-warn); border-style: dashed; }
+.ch-verify.unconf::before { content: "⚠ "; }
+.ch-verify.unconf::after { content: " source · unconfirmed"; font-weight: 400; }
+.ch-kw-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-kw-legend .kw { font-weight: 600; }
+.ch { --ev-bandai: #06b6d4; --ev-cac: #22c55e; --ev-pax: #8b5cf6; --ev-anime: #ec4899; --ev-comic: #ef4444; --ev-riot: #e879f9; --ev-magic: #f97316; --ev-poke: #facc15; --ev-tcgcon: #10b981; }
+.ch-events td.ev-when.ev-tba::after { content: " · dates TBA"; font-weight: 400; color: var(--color-fg-muted); }
+.ch-events td.ev-when { border-left: 4px solid var(--ev, var(--color-border-line)); padding-left: var(--cds-pad-sm); white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ch-events td.ev-when .sub { display: block; font-weight: 400; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.ch-events td.ev-name { font-size: var(--cds-font-size-body); font-weight: 600; }
+.ch-events td.ev-name .venue { display: block; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-events tr.ev-now td.ev-when::after { content: "Happening now"; display: inline-block; margin-top: 4px; font-size: var(--cds-font-size-caption); color: var(--color-ok); border: 1px solid currentColor; border-radius: 999px; padding: 0 7px; }
+.ch-events tr.ev-past { opacity: .6; }
+.ch-events td.ev-hl { line-height: 1.5; }
+.ch-ticket { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 600; border-radius: 999px; padding: 2px 10px; text-decoration: none !important; border: 1px solid currentColor !important; }
+.ch-ticket.t-on { color: var(--color-ok); background: color-mix(in srgb, var(--color-ok) 14%, transparent); }
+.ch-ticket.t-soon { color: var(--color-warn); }
+.ch-ticket.t-none, .ch-ticket.t-ended { color: var(--color-fg-muted); }
+.ch-ticket::after { content: none !important; }
+a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
+.ch-pill { --c: #94a3b8; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 600; line-height: 1.5; border-radius: 999px; padding: 0 9px; background: color-mix(in srgb, var(--c) 16%, transparent); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); color: color-mix(in srgb, var(--c) 72%, var(--color-fg)); }
+.ch-pill.store { border-radius: 5px; font-weight: 500; }
+.ch-pill.store::before { content: ""; width: .5rem; height: .5rem; border-radius: 2px; background: var(--c); flex: none; }
+.ch-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.ch-pills .sep { font-size: 0; }
+.ch-tile { border-top: 3px solid var(--c, var(--color-border-line)) !important; }
+.ch-tile .t { color: color-mix(in srgb, var(--c, var(--color-fg-muted)) 70%, var(--color-fg)); font-weight: 600; }
+.ch-bigbox-grid { display: grid; grid-template-columns: minmax(min(100%, 15rem), 1fr) minmax(0, 2.4fr); gap: var(--cds-gap-md); align-items: start; margin-top: var(--cds-gap-md); }
+@media (max-width: 900px) { .ch-bigbox-grid { grid-template-columns: 1fr; } }
+.ch-bigbox-grid .ch-windows { grid-template-columns: 1fr; margin: 0; }
+.ch-scroll { max-height: 24rem; overflow: auto; }
+.ch-scroll th { position: sticky; top: 0; background: var(--color-panel); z-index: 1; }
+.ch-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+.ch-table th { text-align: left; font-weight: 500; color: var(--color-fg-muted); padding: 0 var(--cds-pad-sm) var(--cds-pad-xs) 0; border-bottom: 1px solid var(--color-border-line); }
+.ch-table td { padding: var(--cds-pad-sm) var(--cds-pad-sm) var(--cds-pad-sm) 0; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.ch-table tr:last-child td { border-bottom: 0; }
+.ch-table td.k { font-size: var(--cds-font-size-body); font-weight: 500; white-space: nowrap; }
+.ch-table td.h { font-weight: 500; color: var(--color-fg); }
+.ch-table a { color: var(--color-fg); text-decoration: none; border-bottom: 1px solid var(--color-border-line); }
+.ch-table a:hover { border-bottom-color: var(--color-fg); }
+.ch-table a::after { content: " ↗"; color: var(--color-fg-muted); font-size: .85em; }
+.ch-nolink::after { content: "link needed"; margin-left: 6px; font-size: var(--cds-font-size-caption); font-weight: 400; color: var(--color-warn); border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; }
+.ch-muted { color: var(--color-fg-muted); }
+.ch-when { white-space: nowrap; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.ch-date { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--color-fg); font-weight: 600; }
+.ch-type { display: inline-block; border: 1px solid var(--color-border-line); border-radius: 999px; padding: 0 8px; white-space: nowrap; color: var(--color-fg-muted); }
+.ch-type.t-now { color: var(--color-ok); border-color: currentColor; }
+.ch-type.t-soon { color: var(--color-warn); border-color: currentColor; }
+.ch-type.t-info { color: var(--color-fg); }
+.ch-chdot { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--color-fg-muted); }
+@media (max-width: 640px) { .ch-hide-narrow { display: none; } }
+.ch-empty { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-md) 0; }
+.ch-other summary { cursor: pointer; font-size: var(--cds-font-size-body); font-weight: 500; list-style: none; display: flex; align-items: center; gap: var(--cds-gap-sm); }
+.ch-other summary::-webkit-details-marker { display: none; }
+.ch-other summary::before { content: "▸"; color: var(--color-fg-muted); transition: transform var(--cds-dur-slow); }
+.ch-other[open] summary::before { transform: rotate(90deg); }
+.ch-other .ch-table { margin-top: var(--cds-gap-md); }
+
+/* Where to buy */
+.ch-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: var(--cds-gap-md); }
+.ch-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color var(--cds-dur-slow); }
+.ch-tile:hover { border-color: var(--color-fg-muted); }
+.ch-tile[aria-pressed="true"] { border-color: var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-fg); }
+.ch-tile .n { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; display: block; min-height: 1.1em; }
+.ch-tile .t { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: block; margin-top: var(--cds-gap-xs); }
+.ch-tile.thin .n { color: var(--color-warn); }
+.ch-chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; margin-top: var(--cds-gap-md); }
+.ch-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.ch-theme { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg-muted); cursor: pointer; white-space: nowrap; }
+.ch-theme:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
+.ch-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.ch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr)); gap: var(--cds-gap-md); align-items: start; margin-top: var(--cds-gap-md); }
+.ch-card.dim { opacity: .82; }
+/* Featured store (Dot's) */
+.ch-store.is-featured { grid-column: span 2; border-color: #a3e635; background: linear-gradient(135deg, color-mix(in srgb, #a3e635 14%, var(--color-bg)), var(--color-bg) 70%); box-shadow: 0 0 0 1px color-mix(in srgb, #a3e635 45%, transparent), 0 6px 24px -10px color-mix(in srgb, #a3e635 60%, transparent); }
+.ch-store.is-featured .s-name { font-size: var(--cds-font-size-heading); }
+.ch-store .s-feat { align-self: flex-start; font-size: var(--cds-font-size-caption); font-weight: 700; color: #1a2e05; background: #a3e635; border-radius: 999px; padding: 1px 10px; }
+@media (max-width: 640px) { .ch-store.is-featured { grid-column: auto; } }
+.jp-only { display: inline-block; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 700; color: #fff; background: #dc2626; border-radius: 999px; padding: 0 8px; margin-left: 2px; cursor: help; vertical-align: 1px; }
+.ch-table tr:has(.jp-only) { background: color-mix(in srgb, #dc2626 9%, transparent); }
+@media (max-width: 640px) { .ch-table tr:has(.jp-only) { box-shadow: inset 3px 0 0 #dc2626; padding-left: 10px; } .ch-table tr:has(.jp-only) td:first-child { box-shadow: none; } }
+.ch-table tr:has(.jp-only) td:first-child { box-shadow: inset 3px 0 0 #dc2626; }
+/* Card show search */
+.ch-shows-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--cds-gap-sm) var(--cds-gap-md); margin: 0 0 var(--cds-gap-sm); }
+.ch-field { display: flex; flex-direction: column; gap: 4px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-field-grow { flex: 1 1 14rem; }
+.ch-field select, .ch-field input { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 8px; padding: 6px 10px; min-height: 36px; width: 100%; box-sizing: border-box; }
+.ch-field select { min-width: 12rem; }
+.ch-field select:focus, .ch-field input:focus { outline: 2px solid var(--color-fg-muted); outline-offset: 1px; }
+.ch-shows-bar .ch-seg { margin: 0; }
+.ch-shows-wait:not([hidden]) { display: block; }
+.ch-months[hidden], .ch-legend[hidden] { display: none; }
+.ch-shows .sh-hit { background: color-mix(in srgb, #facc15 30%, transparent); border-radius: 2px; }
+/* Marketplace */
+.ch-bands { display: grid; gap: var(--cds-gap-md); margin-top: var(--cds-gap-md); }
+.ch-band { background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 4px solid var(--acc); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg) var(--cds-pad-lg); min-width: 0; }
+.ch-band[hidden] { display: none; }
+.ch-band.dim { opacity: .85; }
+.ch-band-head { display: flex; gap: var(--cds-gap-md); align-items: flex-start; }
+.ch-band-num { flex: none; width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-body); color: var(--acc); border: 1px solid var(--acc); background: color-mix(in srgb, var(--acc) 12%, transparent); }
+.ch-band h3 { margin: 2px 0 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm); }
+.ch-band h3 .c { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 400; }
+.ch-band .ch-why { margin: 4px 0 var(--cds-gap-md); max-width: 60rem; }
+.ch-stores { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-sm); }
+.ch-store { display: flex; flex-direction: column; gap: 6px; padding: var(--cds-pad-md); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); text-decoration: none; min-width: 0; transition: border-color var(--cds-dur-slow), transform var(--cds-dur-slow); }
+.ch-store:hover { border-color: var(--acc); }
+.ch-store:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.ch-store .s-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cds-gap-sm); }
+.ch-store .s-name { font-weight: 600; font-size: var(--cds-font-size-body); }
+.ch-store .s-go { color: var(--color-fg-muted); font-size: .85em; flex: none; }
+.ch-store:hover .s-go { color: var(--acc); }
+.ch-store .s-best { font-size: var(--cds-font-size-caption); color: var(--color-fg); line-height: 1.4; }
+.ch-store .ch-pills { margin-top: 2px; }
+.ch-store .s-tip { margin-top: auto; padding-top: 6px; border-top: 1px dashed var(--color-border-line); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.4; }
+.ch-xs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); }
+/* Mobile */
+.ch { grid-template-columns: minmax(0, 1fr); }
+.ch > *, .ch section, .ch details { min-width: 0; }
+.ch-xscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.ch-scroll, .ch-coming-scroll, .ch-fill-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+@media (max-width: 1000px) {
+  .ch-news-side #bandai-log { flex: none; }
+  .ch-fill-scroll { flex: none; min-height: 0; max-height: 24rem; }
+}
+@media (max-width: 640px) {
+  .ch { gap: var(--cds-gap-lg, 20px); }
+  .ch-card { padding: var(--cds-pad-md); }
+  .ch-head-top { flex-wrap: wrap; }
+  .ch-chip, .ch-month, .ch-theme, .ch-seg button { min-height: 36px; padding-top: 6px; padding-bottom: 6px; }
+  .ch-months { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .ch-months::-webkit-scrollbar { display: none; }
+  .ch-month { flex: none; }
+  .ch-seg { display: flex; width: 100%; }
+  .ch-seg button { flex: 1; }
+  /* Tables become stacked cards: title first, then date and tags in a row */
+  .ch-table, .ch-table tbody { display: block; width: 100%; font-size: 14px; }
+  .ch-table thead { display: none; }
+  .ch-table tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 12px 0; border-bottom: 1px solid var(--color-border-line); }
+  .ch-table tr:last-child { border-bottom: 0; }
+  .ch-table td { display: block; padding: 0; border: 0; min-width: 0 !important; }
+  .ch-table td.h, .ch-table td.k, .ch-table td.ev-name, .ch-table td.ev-hl { flex: 1 1 100%; order: -1; line-height: 1.45; }
+  .ch-table td.ev-hl { order: 0; color: var(--color-fg-muted); }
+  .ch-table td.k { white-space: normal; }
+  .ch-table td:empty { display: none; }
+  .ch-table td.ch-date, .ch-table td.ch-when { font-size: 13px; }
+  .ch-events tr { border-left: 4px solid var(--ev, var(--color-border-line)); padding-left: 10px; }
+  .ch-events tr:last-child { border-bottom: 0; }
+  .ch-events td.ev-when { border-left: 0; padding-left: 0; }
+  .ch-events tr.ev-now td.ev-when::after { margin: 0 0 0 6px; }
+  .ch-shows tr.sh-today { box-shadow: inset 3px 0 0 #34d399; padding-left: 10px; }
+  .ch-shows tr.sh-today td:first-child { box-shadow: none; }
+  .ch-scroll, .ch-coming-scroll, .ch-fill-scroll { overflow-x: hidden; }
+  .ch-scroll { max-height: 70vh; }
+  .ch-scroll.ch-draw-scroll { max-height: 18rem; }
+  .ch-coming-scroll { max-height: 16rem; }
+  .ch-window .w-when { font-size: var(--cds-font-size-body); }
+  .ch-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ch-verify.ok::after { content: ""; }
+  .ch-verify.unconf::after { content: " · unconf."; }
+}
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="ch">
+  <header class="ch-head" id="overview">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap: var(--cds-gap-md);">
+      <h1>Chasing Grails</h1>
+      <button class="ch-theme" type="button" aria-label="Switch light or dark">☀ Light</button>
+    </div>
+    <p>MSRP lives at official stores, so that's the focus. Right now: <b data-source="news_by_channel" data-field="items" data-where="channel=Official" class="dash-skeleton">—</b> official releases and drops on the radar, <b data-source="news_by_channel" data-field="items" data-where="channel=Drawing" class="dash-skeleton">—</b> drawings to enter, and <b data-source="news_by_channel" data-field="items" data-where="channel=Big-box" class="dash-skeleton">—</b> big-box retail alerts from X.</p>
+    <div class="ch-legend">
+      <span class="acc-official"><i class="ch-dot"></i>Official · MSRP, top priority</span>
+      <span class="acc-draw"><i class="ch-dot"></i>Drawings · enter for a chance to buy</span>
+      <span class="acc-bigbox"><i class="ch-dot"></i>Big-box · retail price, watch X</span>
+      <span class="acc-lgs"><i class="ch-dot"></i>Game stores · preorders, small markup</span>
+      <span class="acc-market"><i class="ch-dot"></i>Marketplaces · resale, above MSRP</span>
+      <span class="acc-import"><i class="ch-dot"></i>Japan imports · low priority</span>
+    </div>
+    <div class="ch-kw-legend" style="margin-top: var(--cds-gap-sm);">
+      <span>Highlights:</span>
+      <span class="kw" style="--k:#38bdf8">Main set</span>
+      <span class="kw" style="--k:#a78bfa">Extra / special booster</span>
+      <span class="kw" style="--k:#fbbf24">Premium &amp; collector</span>
+      <span class="kw" style="--k:#f472b6">Limited drop</span>
+      <span class="kw" style="--k:#34d399">Event</span>
+    </div>
+  </header>
+
+  <!-- NEWS -->
+  <section id="news">
+    <div class="ch-news-row">
+      <article class="ch-card acc-official" id="official-news">
+        <h2>Official drops <span class="ch-badge">MSRP · top priority</span></h2>
+        <p class="ch-why">Pokémon Center, Premium Bandai and official releases. <b>The only real MSRP</b>, and the hardest to get — drops are random, so watch the windows below.</p>
+        <div class="ch-windows">
+          <div class="ch-window" id="window-pc">
+            <div class="w-name">Pokémon Center</div>
+            <div class="w-when">11am–3pm ET · Mon–Thu</div>
+            <div class="w-note">Random, but X usually catches drops in this window.</div>
+            <span class="ch-live" data-window="pc">—</span>
+          </div>
+          <div class="ch-window" id="window-pb">
+            <div class="w-name">Premium Bandai</div>
+            <div class="w-when">9pm or 10pm ET</div>
+            <div class="w-note">Usual drop time when X doesn't say; otherwise fully random.</div>
+            <span class="ch-live" data-window="pb">—</span>
+          </div>
+        </div>
+        <div class="ch-coming" id="coming-up">
+          <p class="ch-label">Coming up · official only</p>
+          <div class="ch-coming-scroll">
+            <table class="ch-table" id="coming-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">When</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
+            <div class="ch-empty" hidden>Nothing official dated ahead.</div>
+          </div>
+        </div>
+        <p class="ch-label">Releases, events &amp; estimates · by month posted, last 6 months</p>
+        <div class="ch-months" id="official-months"></div>
+        <div class="ch-scroll">
+          <table class="ch-table" id="official-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="type">Type</th><th data-field="account" class="ch-hide-narrow">Source</th><th data-field="verified">Checked</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
+          <div class="ch-empty" hidden>Nothing official posted this month for this game.</div>
+        </div>
+      </article>
+
+      <div class="ch-news-side">
+        <article class="ch-card acc-draw" id="drawings">
+          <h2>Drawings &amp; raffles <span class="ch-badge">Enter to win a chance to buy</span></h2>
+          <p class="ch-why">Not drops — you enter, and winners get to buy at retail. Who's running them right now:</p>
+          <div class="ch-who">
+            <span class="ch-who-item on"><i class="ch-dot"></i>Premium Bandai <em>active</em></span>
+            <span class="ch-who-item on"><i class="ch-dot"></i>Walmart <em>active · random</em></span>
+            <span class="ch-who-item on"><i class="ch-dot"></i>Best Buy <em>active · invite draws</em></span>
+            <span class="ch-who-item on"><i class="ch-dot"></i>Amazon <em>active · invite requests</em></span>
+            <span class="ch-who-item soon"><i class="ch-dot"></i>Pokémon Center <em>reportedly planning · not confirmed</em></span>
+          </div>
+          <div class="ch-scroll ch-draw-scroll">
+          <table class="ch-table" id="drawing-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">Closes / draws</th><th data-field="where">Store</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
+          <div class="ch-empty" hidden>No drawings logged for this game.</div>
+          </div>
+        </article>
+
+        <article class="ch-card acc-official" id="bandai-log">
+          <h2>Premium Bandai drop log <span class="c">from OP TCG Market Discord</span></h2>
+          <p class="ch-why">Every card drop since July from the server's Bandai monitor, checked once a day. Nearly all hit at <b>9pm or 10pm ET</b>.</p>
+          <div class="ch-fill-scroll">
+            <table class="ch-table" id="bandai-table" data-source="bandai_drops" data-row-key="item,dropped_at"><thead><tr><th data-field="dropped_at">When</th><th data-field="item">Item</th><th data-field="price">Price</th><th data-field="status" class="ch-hide-narrow">How it went</th></tr></thead><tbody></tbody></table>
+            <div class="ch-empty" hidden>No drops logged yet — waiting on the first Discord read.</div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <article class="ch-card acc-bigbox" id="bigbox-news" style="margin-top: var(--cds-gap-md);">
+      <h2>Big-box retail <span class="ch-badge">Retail price</span></h2>
+      <p class="ch-why">Target, Walmart, Best Buy, Amazon and friends. Restocks, drops and store promos from X — drawings live in their own section above.</p>
+      <div class="ch-bigbox-grid"><div class="ch-windows" style="margin-top:0">
+        <div class="ch-window" id="window-walmart">
+          <div class="w-name">Walmart</div>
+          <div class="w-when">Wed · 9pm ET</div>
+          <div class="w-note">Regular drop night. Its drawings run at random — see Drawings above.</div>
+          <span class="ch-live" data-window="wm">—</span>
+        </div>
+        <div class="ch-window" id="window-target">
+          <div class="w-name">Target</div>
+          <div class="w-when">~3am ET · seen Wed &amp; Fri</div>
+          <div class="w-note">Only two recent restocks on the Discord monitor (Wed Oct 7, Fri Oct 9) — not a confirmed pattern yet.</div>
+          <span class="ch-live" data-window="tg">—</span>
+        </div>
+      </div>
+      <div class="ch-scroll">
+        <table class="ch-table" id="bigbox-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="type">Type</th><th data-field="where" class="ch-hide-narrow">Where</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>No big-box news for this game yet.</div>
+      </div>
+      </div>
+    </article>
+
+    <details open class="ch-card ch-other" id="other-news" style="margin-top: var(--cds-gap-md); --acc: var(--color-border-line);">
+      <summary>Game stores &amp; other drops <span class="ch-muted" style="font-weight:400; font-size: var(--cds-font-size-caption);">preorders, premium items, resale and imports · click to collapse</span></summary>
+      <div class="ch-xscroll">
+      <table class="ch-table" id="other-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="where">Where</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
+      <div class="ch-empty" hidden>Nothing else for this game.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- CONVENTIONS -->
+  <section id="conventions">
+    <h2 class="ch-section-title">Conventions &amp; big events</h2>
+    <p class="ch-section-sub">Big conventions and championships — next up first. Every date is checked against 2–3 sources (hover the Checked badge). Ticket links go to the official page; nothing is bought for you.</p>
+    <div class="ch-legend" style="margin: 0 0 var(--cds-gap-md);">
+      <span style="--acc: var(--ev-bandai)"><i class="ch-dot"></i>Bandai Card Fest</span>
+      <span style="--acc: var(--ev-cac)"><i class="ch-dot"></i>Collect-A-Con</span>
+      <span style="--acc: var(--ev-pax)"><i class="ch-dot"></i>PAX</span>
+      <span style="--acc: var(--ev-anime)"><i class="ch-dot"></i>Anime NYC</span>
+      <span style="--acc: var(--ev-comic)"><i class="ch-dot"></i>Comic Con</span>
+      <span style="--acc: var(--ev-riot)"><i class="ch-dot"></i>Riot / Riftbound</span>
+      <span style="--acc: var(--ev-magic)"><i class="ch-dot"></i>MagicCon</span>
+      <span style="--acc: var(--ev-poke)"><i class="ch-dot"></i>Pokémon Championships</span>
+      <span style="--acc: var(--ev-tcgcon)"><i class="ch-dot"></i>TCG convention</span>
+    </div>
+    <div class="ch-card" style="--acc: var(--color-border-line);">
+      <div class="ch-scroll" style="max-height: 30rem;">
+        <table class="ch-table ch-events" id="events-table" data-source="events" data-row-key="name"><thead><tr><th data-field="start">When</th><th data-field="name">Event</th><th data-field="series" class="ch-hide-narrow">Series</th><th data-field="city">Where</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="games" class="ch-hide-narrow">TCGs</th><th data-field="tickets">Tickets</th><th data-field="verified">Checked</th><th data-field="highlights">Promos &amp; drops</th><th data-field="notes" class="ch-hide-narrow">Notes</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>No events for this game.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARD SHOWS -->
+  <section id="card-shows">
+    <h2 class="ch-section-title">Card shows</h2>
+    <p class="ch-section-sub">Local card shows from TCDB, the community card-show calendar. Pick a state, then flip through months or search a town or show. Dates and hours are the organizers' own listings, so check the show page before you go. <span id="shows-count"></span></p>
+    <div class="ch-shows-bar">
+      <label class="ch-field"><span>State</span><select id="shows-state" aria-label="State"></select></label>
+      <label class="ch-field ch-field-grow"><span>Search</span><input id="shows-q" type="search" placeholder="Town, venue or show name" autocomplete="off" enterkeyhint="search"></label>
+      <div class="ch-seg" id="shows-focus" role="group" aria-label="Show type">
+        <button type="button" data-cf="tcg" aria-pressed="true">Hide sports-only</button><button type="button" data-cf="all" aria-pressed="false">All shows</button>
+      </div>
+    </div>
+    <div class="ch-legend" id="shows-legend" style="margin: 0 0 var(--cds-gap-sm);">
+      <span style="--acc: var(--rg-queens)"><i class="ch-dot"></i>Queens</span>
+      <span style="--acc: var(--rg-brooklyn)"><i class="ch-dot"></i>Brooklyn</span>
+      <span style="--acc: var(--rg-manhattan)"><i class="ch-dot"></i>Manhattan</span>
+      <span style="--acc: var(--rg-si)"><i class="ch-dot"></i>Staten Island</span>
+      <span style="--acc: var(--rg-li)"><i class="ch-dot"></i>Long Island</span>
+      <span style="--acc: var(--rg-north)"><i class="ch-dot"></i>Westchester / Rockland</span>
+      <span style="--acc: #94a3b8"><i class="ch-dot"></i>Upstate NY</span>
+    </div>
+    <div class="ch-months" id="shows-months"></div>
+    <div class="ch-card" style="--acc: var(--color-border-line);">
+      <div class="ch-scroll" style="max-height: 26rem;">
+        <table class="ch-table ch-shows" id="shows-table" data-source="card_shows" data-row-key="name,date"><thead><tr><th data-field="date">When</th><th data-field="name">Show</th><th data-field="region">Area</th><th data-field="city" class="ch-hide-narrow">Town</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="hours">Hours</th><th data-field="focus" class="ch-hide-narrow">Type</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>No shows match. Try All shows, another month or a shorter search.</div>
+        <div class="ch-empty ch-shows-wait">Card shows load as you scroll here…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHERE TO BUY -->
+  <section id="where-to-buy">
+    <h2 class="ch-section-title">Marketplace</h2>
+    <p class="ch-section-sub">Every place to buy, from MSRP down to resale. Tap a game to filter the whole page, or a channel to show just that one. Each card opens the store.</p>
+
+    <div class="ch-kpis" id="coverage">
+      <button class="ch-tile" data-game="one_piece"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=One Piece">—</span><span class="t">One Piece</span></button>
+      <button class="ch-tile" data-game="pokemon"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Pokémon">—</span><span class="t">Pokémon</span></button>
+      <button class="ch-tile" data-game="mtg"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=MTG">—</span><span class="t">MTG</span></button>
+      <button class="ch-tile" data-game="bandai_other"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Other Bandai">—</span><span class="t">Other Bandai</span></button>
+      <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
+      <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
+    </div>
+
+    <div class="ch-chips" id="filters">
+      <span class="ch-label" style="margin:0 var(--cds-gap-xs) 0 0">Channel</span>
+      <button class="ch-chip" data-channel="all">All</button>
+      <button class="ch-chip acc-official" data-channel="Official stores"><i class="ch-dot"></i>Official</button>
+      <button class="ch-chip acc-bigbox" data-channel="Big-box retail"><i class="ch-dot"></i>Big-box</button>
+      <button class="ch-chip acc-lgs" data-channel="Local game stores"><i class="ch-dot"></i>Game stores</button>
+      <button class="ch-chip acc-market" data-channel="Marketplaces"><i class="ch-dot"></i>Resale</button>
+      <button class="ch-chip acc-import" data-channel="Japan imports"><i class="ch-dot"></i>Japan imports</button>
+      <button class="ch-chip acc-x" data-channel="X"><i class="ch-dot"></i>X searches</button>
+    </div>
+
+    <div class="ch-bands" id="channels">
+      <article class="ch-band acc-official" id="ch-official" data-section="Official stores">
+        <header class="ch-band-head">
+          <span class="ch-band-num">1</span>
+          <div>
+            <h3>Official stores <span class="ch-badge">MSRP · top priority</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Official stores">—</span></h3>
+            <p class="ch-why"><b>Where MSRP actually happens</b>, and the hardest to get. Drops are random, so follow Official drops at the top.</p>
+          </div>
+        </header>
+        <div class="ch-stores" data-source="sources" data-channel="Official stores"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+      <article class="ch-band acc-bigbox" id="ch-bigbox" data-section="Big-box retail">
+        <header class="ch-band-head">
+          <span class="ch-band-num">2</span>
+          <div>
+            <h3>Big-box retail <span class="ch-badge">Retail price · watch X</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Big-box retail">—</span></h3>
+            <p class="ch-why"><b>Retail pricing if you catch it.</b> Restocks, drawings and invites show up on X first. See Big-box news above.</p>
+          </div>
+        </header>
+        <div class="ch-stores" data-source="sources" data-channel="Big-box retail"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+      <article class="ch-band acc-lgs" id="ch-lgs" data-section="Local game stores">
+        <header class="ch-band-head">
+          <span class="ch-band-num">3</span>
+          <div>
+            <h3>Game stores <span class="ch-badge">Preorders · small markup</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Local game stores">—</span></h3>
+            <p class="ch-why"><b>Best for preorders</b>, especially less-hyped sets like Weiss Schwarz. For Pokémon and One Piece, mostly marked-up exclusives that are often still under market.</p>
+          </div>
+        </header>
+        <div class="ch-stores" data-source="sources" data-channel="Local game stores"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+      <article class="ch-band acc-market" id="ch-market" data-section="Marketplaces">
+        <header class="ch-band-head">
+          <span class="ch-band-num">4</span>
+          <div>
+            <h3>Resale marketplaces <span class="ch-badge">Above MSRP</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Marketplaces">—</span></h3>
+            <p class="ch-why"><b>Resale only, no MSRP.</b> Good for singles, slabs and price checks, and the occasional deal.</p>
+          </div>
+        </header>
+        <div class="ch-stores" data-source="sources" data-channel="Marketplaces"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+      <article class="ch-band acc-import dim" id="ch-import" data-section="Japan imports">
+        <header class="ch-band-head">
+          <span class="ch-band-num">5</span>
+          <div>
+            <h3>Japan imports <span class="ch-badge">Low priority · stay aware</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Japan imports">—</span></h3>
+            <p class="ch-why">Japan-only lines like Divine Cross. Good to know about, not a focus. For Japanese One Piece and Pokémon without importing yourself, see <b>★ Dot's Card Shop</b> under Game stores.</p>
+          </div>
+        </header>
+        <div class="ch-stores" data-source="sources" data-channel="Japan imports"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+      <article class="ch-band acc-x dim" id="x-searches" data-section="X">
+        <header class="ch-band-head">
+          <span class="ch-band-num">6</span>
+          <div>
+            <h3>X live searches</h3>
+            <p class="ch-why">One-tap searches for restocks, preorders and drops. They open in your own X account.</p>
+          </div>
+        </header>
+        <div class="ch-stores ch-xs" id="x-list" data-source="x_searches"></div>
+        <div class="ch-empty" hidden>Nothing here for this game.</div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<script>
+// Default to dark; the header toggle switches for this visit.
+(() => {
+  const html = document.documentElement;
+  window.__chTheme = 'dark';
+  const apply = () => {
+    const t = window.__chTheme;
+    if (html.getAttribute('data-theme') !== t) html.setAttribute('data-theme', t);
+    if (html.getAttribute('data-mode') !== t) html.setAttribute('data-mode', t);
+  };
+  apply();
+  new MutationObserver(apply).observe(html, { attributes: true, attributeFilter: ['data-theme', 'data-mode'] });
+  const btn = document.querySelector('.ch-theme');
+  const label = () => { btn.textContent = window.__chTheme === 'dark' ? '☀ Light' : '☾ Dark'; };
+  label();
+  btn.addEventListener('click', () => { window.__chTheme = window.__chTheme === 'dark' ? 'light' : 'dark'; apply(); label(); });
+})();
+
+dash.calc('by_game', {
+  inputs: ['sources'],
+  title: 'Sources per game',
+  description: 'Counts sources marked Yes for each game, fewest first.',
+  fn: (sources) => [
+    ['one_piece', 'One Piece'], ['pokemon', 'Pokémon'], ['mtg', 'MTG'],
+    ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'],
+  ].map(([key, game]) => ({ game, sources: sources.filter((r) => r[key] === 'Yes').length }))
+   .sort((a, b) => a.sources - b.sources),
+});
+dash.calc('by_channel', {
+  inputs: ['sources'],
+  title: 'Sources per channel',
+  description: 'Counts sources in each channel.',
+  fn: (sources) => Array.from(d3.rollup(sources, (v) => v.length, (r) => r.channel), ([channel, n]) => ({ channel, sources: n })),
+});
+dash.calc('news_by_channel', {
+  inputs: ['news'],
+  title: 'News items per channel',
+  description: 'Counts news items tagged Official, Drawing, Big-box and Other.',
+  fn: (news) => ['Official', 'Drawing', 'Big-box', 'Other'].map((channel) => ({ channel, items: news.filter((r) => r.channel === channel).length })),
+});
+
+const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz' };
+const TCG_COLOR = { 'One Piece': '#ef4444', 'Pokémon': '#facc15', 'MTG': '#f97316', 'Other Bandai': '#3b82f6', 'Divine Cross': '#a855f7', 'Weiss Schwarz': '#14b8a6', 'Riftbound': '#e879f9' };
+const STORE_COLOR = [
+  ['Pokémon Center', '#ec4899'], ['Premium Bandai', '#06b6d4'], ['Secret Lair', '#8b5cf6'],
+  ['Walmart', '#2563eb'], ['Target', '#dc2626'], ['Best Buy', '#eab308'], ['Amazon', '#f59e0b'],
+  ['GameStop', '#e11d48'], ['Costco', '#0ea5e9'], ["Sam's Club", '#0284c7'], ['Dollar General', '#fbbf24'],
+  ['Hot Topic', '#a3a3a3'], ['eBay', '#22c55e'], ['Whatnot', '#facc15'], ['Exp. Share', '#60a5fa'], ['Cats Collectible', '#fb7185'], ['763 Collectibles', '#4ade80'], ['Gamers Guild', '#c084fc'], ['Miniature Market', '#f97316'], ['Riot', '#e879f9'], ['Base Shop', '#ef4444'], ['Premier Demo', '#3b82f6'], ["Dot's", '#a3e635'],
+];
+const pill = (text, color, cls) => { const s = el('span', 'ch-pill' + (cls ? ' ' + cls : ''), text); s.style.setProperty('--c', color); return s; };
+const tcgPill = (name) => pill(name, TCG_COLOR[name] || '#94a3b8');
+const storePill = (where) => pill(where, (STORE_COLOR.find(([k]) => where.includes(k)) || [, '#94a3b8'])[1], 'store');
+const tcgCell = (name) => { const td = el('td'); if (name) td.appendChild(tcgPill(name)); return td; };
+const storeCell = (where, cls) => { const td = el('td', cls || null); if (where) td.appendChild(storePill(where)); return td; };
+const gamesCell = (games) => {
+  const td = el('td'); const wrap = el('div', 'ch-pills');
+  (games || '').split(' · ').forEach((g, i) => { if (i) wrap.appendChild(el('span', 'sep', ' · ')); wrap.appendChild(TCG_COLOR[g] ? tcgPill(g) : el('span', 'ch-muted', g)); });
+  td.appendChild(wrap); return td;
+};
+const NEWS_ACC = { 'Official': 'acc-official', 'Big-box': 'acc-bigbox', 'Other': 'acc-lgs' };
+const root = document.querySelector('.ch');
+root.style.setProperty('--acc-bigbox', dash.colors[0]);
+root.style.setProperty('--acc-import', dash.colors[4] || dash.colors[1]);
+root.style.setProperty('--acc-draw', dash.colors[2] || dash.colors[1]);
+
+root.querySelectorAll('button[data-game]').forEach((b) => b.style.setProperty('--c', TCG_COLOR[GAME_LABEL[b.dataset.game]]));
+root.querySelectorAll('button[data-game]').forEach((b) => b.addEventListener('click', () => {
+  const g = b.dataset.game;
+  dash.setParams({ game: dash.params().game === g ? 'all' : g });
+}));
+root.querySelectorAll('button.ch-chip').forEach((b) => b.addEventListener('click', () => dash.setParams({ channel: b.dataset.channel })));
+
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const linkCell = (td, name, url) => {
+  if (url) { const a = el('a', null, name); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; td.appendChild(a); }
+  else td.appendChild(el('span', 'ch-nolink', name));
+};
+// Keyword highlighting by kind of drop. Text stays the same; matches are wrapped in colored marks.
+const KW_RULES = [
+  ['premium', /Premium Card Collection(?::?(?:\s+(?:[A-Z0-9][\w.’'-]*|vol\.\d+|\/))+)?(?:\s*\((?!new|restock|relisted|listed)[^)]*\))?|Gift Collection(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\((?!new|restock|relisted|listed)[^)]*\))?|Ditto Premium Collection|Premium Collection|\b(?:Japanese|Chinese)\s+\d+(?:st|nd|rd|th) Anniversary Set|\d+(?:st|nd|rd|th) Anniversary (?:Set|Edition)|Premium Goods Set(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\[[A-Z0-9]+\])?|Best Selection vol\.\d+|Deck Build Box(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\[[A-Z0-9]+\])?/g],
+  ['extra', /Heroines Edition Vol\.?\s?\d+(?:\s*\(EB-?\d+\))?|\bEB-?\d{2}\b|\bPRB-?\d{2}\b|30th Celebration|Masters Ultra-Bout Series \d+/gi],
+  ['limited', /Secret Lair(?:\s+bundles?)?|Reality Fracture Collector Booster box|ONE PIECE DAY 20\d\d|(?:Weekly |Saikyo |V )?Jump (?:Starter Deck|promo[s]?)/gi],
+  ['event', /pre-release events?|Championship[^,;]*|Regionals?|Card Games Fest/gi],
+  ['set', /\bOP-?\d{2}(?:\s+(?:The|[A-Z][\w’']+)(?:\s+(?:of|the|[A-Z][\w’']+))*)?|\bST-?\d{2}\b|\bSC\d{2}\b|\bPB\d{2}\b|Delta Reign|Prismatic Evolutions|Chaos Rising|Pitch Black|Phantasmal Flames|Ascended Heroes|Perfect Order|Reality Fracture|Dominance of God/g],
+];
+const KW_COLOR = { set: '#38bdf8', extra: '#a78bfa', premium: '#fbbf24', event: '#34d399', limited: '#f472b6' };
+const KW_LABEL = { set: 'Main set', extra: 'Extra / special booster', premium: 'Premium & collector', event: 'Event', limited: 'Limited drop' };
+const appendHL = (parent, text) => {
+  const hits = [];
+  KW_RULES.forEach(([kind, re]) => { re.lastIndex = 0; let m; while ((m = re.exec(text))) { if (m[0].trim()) hits.push({ s: m.index, e: m.index + m[0].replace(/\s+$/, '').length, kind }); } });
+  hits.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
+  let pos = 0;
+  hits.forEach((h) => {
+    if (h.s < pos) return;
+    if (h.s > pos) parent.appendChild(document.createTextNode(text.slice(pos, h.s)));
+    const k = el('span', 'kw', text.slice(h.s, h.e)); k.style.setProperty('--k', KW_COLOR[h.kind]); k.title = KW_LABEL[h.kind];
+    parent.appendChild(k); pos = h.e;
+  });
+  if (pos < text.length) parent.appendChild(document.createTextNode(text.slice(pos)));
+};
+const linkHL = (td, text, url) => {
+  const holder = url ? el('a') : el('span', 'ch-nolink');
+  if (url) { holder.href = url; holder.target = '_blank'; holder.rel = 'noopener noreferrer'; }
+  appendHL(holder, text); td.appendChild(holder);
+};
+const TYPE_COLOR = { Release: '#38bdf8', Estimate: '#94a3b8', Event: '#34d399', Drop: '#22c55e', Restock: '#22c55e', 'In stock': '#22c55e', Preorder: '#f59e0b', Drawing: '#f59e0b', Invite: '#f59e0b', Promo: '#f472b6' };
+const setText = (node, v) => { node.textContent = v; node.classList.remove('dash-skeleton'); };
+const fmtPosted = (s) => { const d = new Date(s); return isNaN(d) ? s : d3.timeFormat('%b %-d, %-I:%M %p')(d); };
+const fmtWhen = (s) => { if (!s) return ''; const d = new Date(s); if (isNaN(d)) return s; return s.length <= 10 ? d3.utcFormat('%a %b %-d')(d) : d3.timeFormat('%a %b %-d, %-I %p')(d); };
+const typeClass = (t) => (['Restock', 'In stock', 'Drop'].includes(t) ? 't-now' : ['Preorder', 'Drawing', 'Invite'].includes(t) ? 't-soon' : 't-info');
+
+// Drop-window status from the viewer's clock, in New York time
+const nyParts = () => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+  return { day: p.weekday, hour: Number(p.hour) % 24 };
+};
+const drawWindows = () => {
+  const { day, hour } = nyParts();
+  const pc = root.querySelector('[data-window="pc"]');
+  const pb = root.querySelector('[data-window="pb"]');
+  const weekday = ['Mon', 'Tue', 'Wed', 'Thu'].includes(day);
+  const pcOn = weekday && hour >= 11 && hour < 15;
+  pc.classList.toggle('on', pcOn);
+  pc.textContent = pcOn ? 'In the window now' : (weekday && hour < 11 ? 'Opens today at 11am' : (day === 'Thu' || day === 'Fri' || day === 'Sat' || day === 'Sun' ? 'Next window: Monday 11am' : 'Next window: tomorrow 11am'));
+  const pbOn = hour >= 21 && hour < 23;
+  pb.classList.toggle('on', pbOn);
+  pb.textContent = pbOn ? 'In the usual window now' : (hour < 21 ? 'Tonight 9–10pm if it drops' : 'Next: tomorrow 9–10pm');
+  const wm = root.querySelector('[data-window="wm"]');
+  const wmOn = day === 'Wed' && hour === 21;
+  wm.classList.toggle('on', wmOn);
+  wm.textContent = wmOn ? 'Dropping now' : (day === 'Wed' && hour < 21 ? 'Tonight at 9pm' : (day === 'Tue' ? 'Tomorrow at 9pm' : 'Next: Wednesday 9pm'));
+  const tg = root.querySelector('[data-window="tg"]');
+  const tgOn = hour === 3 && (day === 'Wed' || day === 'Fri');
+  tg.classList.toggle('on', tgOn);
+  tg.textContent = tgOn ? 'In the 3am window now' : (day === 'Tue' || day === 'Thu' ? 'Possible tonight ~3am' : (day === 'Wed' && hour < 3) || (day === 'Fri' && hour < 3) ? 'Possible at 3am' : 'Next likely: Wed or Fri ~3am');
+};
+
+const fillTable = (table, rows, cols) => {
+  const tbody = table.querySelector('tbody');
+  tbody.replaceChildren();
+  rows.forEach((r) => {
+    const tr = document.createElement('tr');
+    cols.forEach((c) => tr.appendChild(c(r)));
+    tbody.appendChild(tr);
+  });
+  table.hidden = rows.length === 0;
+  const empty = table.parentElement.querySelector(':scope > .ch-empty');
+  if (empty) empty.hidden = rows.length !== 0;
+};
+
+// ---- Card shows: lazy load, per-state index, local controls ----
+const ST_NAME = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, DC',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
+const CS = { state: 'NY', focus: 'tcg', month: null, q: '', idx: null, ref: null };
+function watchShows() {
+  if (window.__csWatching) return; window.__csWatching = true;
+  const sec = root.querySelector('#card-shows');
+  const go = () => { window.__csSeen = true; renderShows(); };
+  if (!('IntersectionObserver' in window)) { go(); return; }
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '800px 0px' });
+  io.observe(sec);
+}
+function showsIndex(rows) {
+  if (CS.ref === rows && CS.idx) return CS.idx;
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0); const today = d3.timeFormat('%Y-%m-%d')(t0);
+  const by = new Map();
+  for (const r of rows) {
+    if (!r.date || r.date < today) continue;
+    const k = r.state || 'NY';
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push({ r, hay: (r.name + ' ' + r.city + ' ' + r.venue).toLowerCase() });
+  }
+  for (const v of by.values()) v.sort((a, b) => a.r.date.localeCompare(b.r.date) || a.r.name.localeCompare(b.r.name));
+  CS.ref = rows; CS.idx = by; return by;
+}
+const RG = { 'Queens': 'var(--rg-queens)', 'Brooklyn': 'var(--rg-brooklyn)', 'Manhattan': 'var(--rg-manhattan)', 'Staten Island': 'var(--rg-si)', 'Long Island': 'var(--rg-li)', 'Westchester / Rockland': 'var(--rg-north)', 'Upstate NY': '#94a3b8' };
+const FOCUS = { 'TCG': '#34d399', 'Sports + TCG': '#60a5fa', 'General': '#a78bfa', 'Sports': '#94a3b8' };
+const sportsOnly = (f) => f === 'Sports' || f === 'Sports / general';
+function renderShows() {
+  const csd = dash.data('card_shows');
+  const wait = root.querySelector('.ch-shows-wait');
+  const tbl = root.querySelector('#shows-table');
+  const empty = tbl.parentElement.querySelector(':scope > .ch-empty:not(.ch-shows-wait)');
+  if (csd.status !== 'ok') { wait.hidden = false; wait.textContent = csd.status === 'loading' ? 'Loading card shows…' : 'Card shows didn\'t load.'; tbl.hidden = true; empty.hidden = true; return; }
+  wait.hidden = true;
+  const idx = showsIndex(csd.data);
+  // State picker (built once per data load)
+  const sel = root.querySelector('#shows-state');
+  if (sel.dataset.ref !== String(csd.data.length)) {
+    const states = [...idx.keys()].sort((a, b) => (ST_NAME[a] || a).localeCompare(ST_NAME[b] || b));
+    if (!idx.has(CS.state)) CS.state = states.includes('NY') ? 'NY' : states[0];
+    sel.replaceChildren(...states.map((k) => { const o = document.createElement('option'); o.value = k; o.textContent = (ST_NAME[k] || k) + ' (' + idx.get(k).length + ')'; return o; }));
+    sel.value = CS.state; sel.dataset.ref = String(csd.data.length);
+    sel.onchange = () => { CS.state = sel.value; CS.month = null; drawShows(); };
+    const q = root.querySelector('#shows-q'); let t;
+    q.oninput = () => { clearTimeout(t); t = setTimeout(() => { CS.q = q.value.trim().toLowerCase(); drawShows(); }, 180); };
+    root.querySelectorAll('#shows-focus button').forEach((b) => { b.onclick = () => { CS.focus = b.dataset.cf; CS.month = null; drawShows(); }; });
+  }
+  drawShows();
+}
+function drawShows() {
+  const idx = CS.idx; if (!idx) return;
+  root.querySelectorAll('#shows-focus button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cf === CS.focus)));
+  root.querySelector('#shows-legend').hidden = CS.state !== 'NY';
+  const all = (idx.get(CS.state) || []).filter((x) => CS.focus === 'all' || !sportsOnly(x.r.focus));
+  const terms = CS.q ? CS.q.split(/\s+/) : [];
+  const hits = terms.length ? all.filter((x) => terms.every((t) => x.hay.includes(t))) : all;
+  const mk = (s) => s.slice(0, 7);
+  const mcount = d3.rollup(hits, (v) => v.length, (x) => mk(x.r.date));
+  const mkeys = [...mcount.keys()].sort();
+  if (!CS.month || !mcount.has(CS.month)) CS.month = mkeys[0] || null;
+  const mName = d3.timeFormat('%b %Y');
+  const bar = root.querySelector('#shows-months');
+  bar.replaceChildren(...mkeys.map((k) => {
+    const b = el('button', 'ch-month', mName(new Date(k + '-01T12:00:00')));
+    b.type = 'button'; b.appendChild(el('span', 'n', String(mcount.get(k))));
+    b.setAttribute('aria-pressed', String(k === CS.month));
+    b.onclick = () => { CS.month = k; drawShows(); };
+    return b;
+  }));
+  const label = 'shows in ' + (ST_NAME[CS.state] || CS.state) + (CS.focus === 'all' ? '' : ' (sports-only hidden)');
+  root.querySelector('#shows-count').textContent = terms.length ? hits.length + ' ' + label + ' match "' + CS.q + '".' : 'Showing ' + all.length + ' upcoming ' + label + '.';
+  bar.hidden = terms.length > 0;
+  const rows = (terms.length ? hits : hits.filter((x) => mk(x.r.date) === CS.month)).slice(0, 300);
+  const fmtD = d3.timeFormat(terms.length ? '%a %b %-d, %Y' : '%a %b %-d');
+  const tdy = d3.timeFormat('%Y-%m-%d')(new Date());
+  const frag = document.createDocumentFragment();
+  for (const { r } of rows) {
+    const tr = document.createElement('tr');
+    if (r.date === tdy) tr.className = 'sh-today'; else if (sportsOnly(r.focus)) tr.className = 'sh-sports';
+    tr.appendChild(el('td', 'sh-when', r.date === tdy ? 'Today' : fmtD(new Date(r.date + 'T12:00:00'))));
+    const n = el('td', 'h'); linkCell(n, r.name, r.url); tr.appendChild(n);
+    const rg = el('td'); rg.appendChild(pill(r.region || r.city, RG[r.region] || '#94a3b8')); tr.appendChild(rg);
+    tr.appendChild(el('td', 'ch-hide-narrow', r.region ? r.city : ''));
+    tr.appendChild(el('td', 'ch-muted ch-hide-narrow', r.venue));
+    tr.appendChild(el('td', 'ch-muted', r.hours));
+    const fc = el('td', 'ch-hide-narrow'); fc.appendChild(pill(r.focus, FOCUS[r.focus] || '#94a3b8')); tr.appendChild(fc);
+    frag.appendChild(tr);
+  }
+  const tbl = root.querySelector('#shows-table');
+  tbl.tBodies[0].replaceChildren(frag);
+  tbl.hidden = rows.length === 0;
+  tbl.parentElement.querySelector(':scope > .ch-empty:not(.ch-shows-wait)').hidden = rows.length !== 0;
+  tbl.parentElement.scrollTop = 0;
+}
+
+dash.onData(() => {
+  const p = dash.params();
+  const game = p.game || 'all';
+  const channel = p.channel || 'all';
+  const gameOk = (label) => game === 'all' || label === GAME_LABEL[game];
+
+  root.querySelectorAll('button[data-game]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.game === game)));
+  root.querySelectorAll('button.ch-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.channel === channel)));
+  drawWindows();
+
+  // Header counts
+  const nbc = dash.data('news_by_channel');
+  if (nbc.status === 'ok') {
+    root.querySelectorAll('.ch-head [data-source="news_by_channel"]').forEach((b) => {
+      const ch = b.dataset.where.split('=')[1];
+      const row = nbc.data.find((d) => d.channel === ch);
+      if (row) setText(b, d3.format(',')(row.items));
+    });
+  }
+
+  // News panels
+  const news = dash.data('news');
+  if (news.status === 'ok') {
+    const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
+    const headline = (r) => { const td = el('td', 'h'); linkHL(td, r.headline, r.url); if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } return td; };
+    const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
+    const checkCell = (r) => {
+      const td = el('td');
+      if (r.verified !== '' && r.verified != null) { const v = el('span', 'ch-verify ' + (Number(r.verified) >= 2 ? 'ok' : 'unconf'), String(r.verified)); v.title = r.verified_by || ''; td.appendChild(v); }
+      return td;
+    };
+    const typ = (r) => { const td = el('td'); td.appendChild(pill(r.type, TYPE_COLOR[r.type] || '#94a3b8', r.type === 'Estimate' ? 'est' : '')); return td; };
+
+    const monthKey = d3.timeFormat('%Y-%m');
+    const monthName = d3.timeFormat('%b %Y');
+    const thisMonth = d3.timeMonth.floor(new Date());
+    const months = d3.range(6).map((i) => d3.timeMonth.offset(thisMonth, -i));
+    const officialAll = all.filter((r) => r.channel === 'Official' && new Date(r.at) >= months[5]);
+    const counts = d3.rollup(officialAll, (v) => v.length, (r) => monthKey(new Date(r.at)));
+    const selMonth = p.om && months.some((m) => monthKey(m) === p.om) ? p.om : monthKey(thisMonth);
+    const monthsBar = root.querySelector('#official-months');
+    monthsBar.replaceChildren(...months.map((m) => {
+      const k = monthKey(m), n = counts.get(k) || 0;
+      const b = el('button', 'ch-month', monthName(m));
+      b.type = 'button';
+      b.appendChild(el('span', 'n', String(n)));
+      b.setAttribute('aria-pressed', String(k === selMonth));
+      b.disabled = n === 0 && k !== selMonth;
+      b.addEventListener('click', () => dash.setParams({ om: k }));
+      return b;
+    }));
+    fillTable(root.querySelector('#official-table'), officialAll.filter((r) => monthKey(new Date(r.at)) === selMonth), [
+      headline, (r) => tcgCell(r.game), typ, (r) => el('td', 'ch-muted ch-hide-narrow', r.account), (r) => checkCell(r), posted,
+    ]);
+    fillTable(root.querySelector('#bigbox-table'), all.filter((r) => r.channel === 'Big-box'), [
+      headline, typ, (r) => storeCell(r.where, 'ch-hide-narrow'), posted,
+    ]);
+    fillTable(root.querySelector('#other-table'), all.filter((r) => !['Official', 'Big-box', 'Drawing'].includes(r.channel)), [
+      headline, (r) => tcgCell(r.game), (r) => storeCell(r.where), posted,
+    ]);
+
+    const gameTag = (r) => tcgCell(r.game);
+    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+    const soon = all.filter((r) => r.channel === 'Official' && r.happens && new Date(r.happens) >= startOfToday).sort((a, b) => new Date(a.happens) - new Date(b.happens));
+    fillTable(root.querySelector('#coming-table'), soon, [
+      (r) => el('td', 'ch-date', fmtWhen(r.happens)),
+      gameTag,
+      headline,
+      checkCell,
+    ]);
+
+    const draws = all.filter((r) => r.channel === 'Drawing').sort((a, b) => {
+      const ka = a.happens ? new Date(a.happens) : new Date(8.64e15), kb = b.happens ? new Date(b.happens) : new Date(8.64e15);
+      return ka - kb || new Date(b.at) - new Date(a.at);
+    });
+    fillTable(root.querySelector('#drawing-table'), draws, [
+      (r) => el('td', r.happens ? 'ch-date' : 'ch-when ch-open', r.happens ? fmtWhen(r.happens) : ''),
+      (r) => storeCell(r.where),
+      gameTag,
+      headline,
+      checkCell,
+    ]);
+  }
+
+  // Conventions
+  const evd = dash.data('events');
+  if (evd.status === 'ok') {
+    const EV_COLOR = { 'Bandai Card Fest': 'var(--ev-bandai)', 'Collect-A-Con': 'var(--ev-cac)', 'PAX': 'var(--ev-pax)', 'Anime NYC': 'var(--ev-anime)', 'Anime Expo': 'var(--ev-anime)', 'Comic Con': 'var(--ev-comic)', 'Riot': 'var(--ev-riot)', 'MagicCon': 'var(--ev-magic)', 'Pokémon Championships': 'var(--ev-poke)', 'TCG Convention': 'var(--ev-tcgcon)' };
+    const today = d3.timeDay.floor(new Date());
+    const parseDay = (s) => s && s.length === 10 ? new Date(s + 'T12:00:00') : (s && s.length === 7 ? new Date(s + '-01T12:00:00') : (s && s.length === 4 ? new Date(s + '-12-31T12:00:00') : null));
+    const fmtDay = d3.timeFormat('%b %-d'), fmtMon = d3.timeFormat('%b %Y'), fmtYear = d3.timeFormat('%Y');
+    const evs = evd.data.filter((r) => game === 'all' || (r.games || '').split(' · ').includes(GAME_LABEL[game])).map((r) => {
+      const s = parseDay(r.start), e = parseDay(r.end) || s;
+      const past = e && d3.timeDay.floor(e) < today;
+      const now = s && e && d3.timeDay.floor(s) <= today && today <= d3.timeDay.floor(e);
+      return { r, s, e, past, now };
+    }).sort((a, b) => (a.past - b.past) || (a.past ? b.s - a.s : a.s - b.s));
+    const tbody = root.querySelector('#events-table tbody');
+    tbody.replaceChildren();
+    evs.forEach(({ r, s, e, past, now }) => {
+      const tr = document.createElement('tr');
+      if (past) tr.className = 'ev-past'; else if (now) tr.className = 'ev-now';
+      tr.style.setProperty('--ev', EV_COLOR[r.series] || 'var(--color-border-line)');
+      const when = el('td', 'ev-when');
+      if (r.start.length === 4) { when.textContent = r.start; when.setAttribute('title', 'Dates not announced'); when.classList.add('ev-tba'); }
+      else if (r.start.length === 7) { when.textContent = fmtMon(s); when.setAttribute('title', 'Dates not announced'); when.classList.add('ev-tba'); }
+      else { when.textContent = fmtDay(s) + (r.end && r.end !== r.start ? '–' + (d3.timeFormat('%m')(s) === d3.timeFormat('%m')(e) ? d3.timeFormat('%-d')(e) : fmtDay(e)) : '') + ', ' + fmtYear(s); }
+      tr.appendChild(when);
+      const name = el('td', 'ev-name'); linkCell(name, r.name, r.info_url); tr.appendChild(name);
+      const ser = el('td', 'ch-hide-narrow'); ser.appendChild(pill(r.series, EV_COLOR[r.series] || '#94a3b8')); tr.appendChild(ser);
+      tr.appendChild(el('td', null, r.city));
+      tr.appendChild(el('td', 'ch-muted ch-hide-narrow', r.venue));
+      const g = gamesCell(r.games); g.classList.add('ch-hide-narrow'); tr.appendChild(g);
+      const tk = el('td');
+      const cls = r.tickets === 'On sale' ? 't-on' : r.tickets === 'Coming soon' ? 't-soon' : r.tickets === 'Ended' ? 't-ended' : 't-none';
+      if (r.ticket_url && r.tickets !== 'Ended') { const a = el('a', 'ch-ticket ' + cls, r.tickets); a.href = r.ticket_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; tk.appendChild(a); }
+      else tk.appendChild(el('span', 'ch-ticket ' + cls, r.tickets));
+      tr.appendChild(tk);
+      const ck = el('td'); if (r.verified !== '' && r.verified != null) { const v = el('span', 'ch-verify ' + (Number(r.verified) >= 2 ? 'ok' : 'unconf'), String(r.verified)); v.title = r.verified_by || ''; ck.appendChild(v); } else if (r.verified_by) { ck.title = r.verified_by; } tr.appendChild(ck);
+      const hl = el('td', 'ev-hl', r.highlights || ''); hl.style.minWidth = '16rem'; tr.appendChild(hl);
+      const nt = el('td', 'ch-muted ch-hide-narrow', r.notes); nt.style.minWidth = '12rem'; tr.appendChild(nt);
+      tbody.appendChild(tr);
+    });
+    const tbl = root.querySelector('#events-table');
+    tbl.hidden = evs.length === 0;
+    tbl.parentElement.querySelector(':scope > .ch-empty').hidden = evs.length !== 0;
+  }
+
+  // Card shows — rendered on its own (no full-page redraw), loaded only when scrolled near
+  if (window.__csSeen) renderShows(); else watchShows();
+  // Bandai drop log
+  const bd = dash.data('bandai_drops');
+  if (bd.status === 'ok') {
+    const rows = bd.data.filter((r) => gameOk(r.game || 'One Piece')).slice().sort((a, b) => new Date(b.dropped_at) - new Date(a.dropped_at));
+    fillTable(root.querySelector('#bandai-table'), rows, [
+      (r) => el('td', 'ch-when', fmtPosted(r.dropped_at)),
+      (r) => { const td = el('td', 'h'); linkHL(td, r.item, r.url); return td; },
+      (r) => el('td', 'ch-muted', r.price || ''),
+      (r) => el('td', 'ch-muted ch-hide-narrow', r.status || ''),
+    ]);
+  }
+
+  // Channel counts
+  const bc = dash.data('by_channel');
+  if (bc.status === 'ok') root.querySelectorAll('#channels [data-source="by_channel"]').forEach((n) => {
+    const ch = n.closest('[data-section]').dataset.section;
+    const row = bc.data.find((d) => d.channel === ch);
+    n.textContent = row ? d3.format(',')(row.sources) : '—';
+  });
+
+  // Coverage tiles
+  const bg = dash.data('by_game');
+  if (bg.status === 'ok') {
+    const max = d3.max(bg.data, (d) => d.sources);
+    root.querySelectorAll('button[data-game]').forEach((b) => {
+      const row = bg.data.find((d) => d.game === GAME_LABEL[b.dataset.game]);
+      if (row) { setText(b.querySelector('.n'), d3.format(',')(row.sources)); b.classList.toggle('thin', row.sources <= Math.max(2, max * 0.25)); }
+    });
+  }
+
+  // Marketplace store cards
+  const storeCard = (name, url, kids) => {
+    const a = el('a', 'ch-store');
+    if (url) { a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    const top = el('div', 's-top'); top.appendChild(el('span', 's-name', name)); if (url) top.appendChild(el('span', 's-go', '↗'));
+    a.appendChild(top); kids.forEach((k) => k && a.appendChild(k));
+    return a;
+  };
+  const pillsOf = (games) => { const w = el('div', 'ch-pills'); (games || '').split(' · ').filter(Boolean).forEach((g) => w.appendChild(TCG_COLOR[g] ? tcgPill(g) : el('span', 'ch-muted', g))); return w; };
+  const src = dash.data('sources');
+  root.querySelectorAll('.ch-stores[data-channel]').forEach((box) => {
+    const band = box.closest('.ch-band');
+    band.hidden = channel !== 'all' && channel !== band.dataset.section;
+    if (src.status !== 'ok') return;
+    const rows = src.data.filter((r) => r.channel === box.dataset.channel && (game === 'all' || r[game] === 'Yes'))
+      .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    box.replaceChildren(...rows.map((r) => { const c = storeCard(r.name, r.url, [
+      r.featured ? el('div', 's-feat', '★ ' + r.featured) : null,
+      r.best_for ? el('div', 's-best', r.best_for) : null,
+      pillsOf(r.games),
+      r.notes ? el('div', 's-tip', r.notes) : null,
+    ]); if (r.featured) c.classList.add('is-featured'); return c; }));
+    box.parentElement.querySelector(':scope > .ch-empty').hidden = rows.length !== 0;
+  });
+
+  // X searches
+  const xs = dash.data('x_searches');
+  const xcard = root.querySelector('#x-searches');
+  xcard.hidden = channel !== 'all' && channel !== 'X';
+  if (xs.status === 'ok') {
+    const xrows = xs.data.filter((r) => gameOk(r.game));
+    const xbox = root.querySelector('#x-list');
+    xbox.replaceChildren(...xrows.map((r) => storeCard(r.label, r.url, [r.game ? tcgPill(r.game) : null])));
+    xcard.querySelector(':scope > .ch-empty').hidden = xrows.length !== 0;
+  }
+});
+</script>
+
+</div>
+</body>
+</html>
