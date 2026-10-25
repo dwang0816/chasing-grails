@@ -1,0 +1,42 @@
+[
+ {
+  "label": "One Piece restocks & preorders",
+  "game": "One Piece",
+  "url": "https://x.com/search?q=%28%22One%20Piece%20TCG%22%20OR%20OPTCG%20OR%20%22One%20Piece%20card%20game%22%29%20%28restock%20OR%20preorder%20OR%20%22in%20stock%22%29&f=live"
+ },
+ {
+  "label": "Premium Bandai drops",
+  "game": "One Piece",
+  "url": "https://x.com/search?q=%22Premium%20Bandai%22%20%28%22One%20Piece%22%20OR%20card%29&f=live"
+ },
+ {
+  "label": "Pokémon Center queues & restocks",
+  "game": "Pokémon",
+  "url": "https://x.com/search?q=%22Pokemon%20Center%22%20%28restock%20OR%20queue%20OR%20%22in%20stock%22%29&f=live"
+ },
+ {
+  "label": "Pokémon big-box restocks",
+  "game": "Pokémon",
+  "url": "https://x.com/search?q=%22Pokemon%20TCG%22%20restock%20%28Target%20OR%20Walmart%20OR%20%22Best%20Buy%22%20OR%20Costco%29&f=live"
+ },
+ {
+  "label": "MTG preorders",
+  "game": "MTG",
+  "url": "https://x.com/search?q=%28%22Magic%3A%20The%20Gathering%22%20OR%20MTG%29%20preorder&f=live"
+ },
+ {
+  "label": "Gundam / Fusion World drops",
+  "game": "Other Bandai",
+  "url": "https://x.com/search?q=%28%22Gundam%20Card%20Game%22%20OR%20%22Fusion%20World%22%29%20%28restock%20OR%20preorder%29&f=live"
+ },
+ {
+  "label": "Weiss Schwarz releases",
+  "game": "Weiss Schwarz",
+  "url": "https://x.com/search?q=%22Weiss%20Schwarz%22%20%28preorder%20OR%20release%20OR%20restock%29&f=live"
+ },
+ {
+  "label": "Divine Cross news",
+  "game": "Divine Cross",
+  "url": "https://x.com/search?q=%22DIVINE%20CROSS%22%20OR%20%E3%83%87%E3%82%A3%E3%83%B4%E3%82%A1%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%AD%E3%82%B9&f=live"
+ }
+]
