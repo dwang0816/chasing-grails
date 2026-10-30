@@ -353,7 +353,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   .ch-verify.unconf::after { content: " · unconf."; }
 }
 
-/* Booster box deals alert */
+/* Deals alert */
 .ch-deals { border: 1px solid color-mix(in srgb, #22c55e 55%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #22c55e 14%, var(--color-bg)), var(--color-bg) 75%); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
 .ch-deals-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 700; font-size: var(--cds-font-size-heading); }
 .ch-deals-head .sub { font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
@@ -441,7 +441,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   </nav>
 
   <section class="ch-deals ch-jump-target" id="deals" hidden data-source="news">
-    <div class="ch-deals-head">🔥 Booster box deals <span class="sub">within $90 of MSRP · grab them before they sell out</span></div>
+    <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP</span></div>
     <ul id="deals-list"></ul>
   </section>
   <button type="button" class="ch-top" id="to-top" aria-label="Back to top">↑</button>
@@ -865,16 +865,52 @@ const TYPE_COLOR = { Release: '#38bdf8', Estimate: '#94a3b8', Event: '#34d399', 
 const setText = (node, v) => { node.textContent = v; node.classList.remove('dash-skeleton'); };
 const fmtPosted = (s) => { const d = new Date(s); return isNaN(d) ? s : d3.timeFormat('%b %-d, %-I:%M %p')(d); };
 
-// Booster box deal: a price within $90 of MSRP on anything booster-box related.
-const DEAL_MAX_OVER = 90;
-const BOX_RE = /booster\s*(?:box|boxes|display|case)|display box|(?:collector|play) booster (?:box|display)|extra booster box|premium booster box|mini case set|booster case/i;
+// Deals: each product type has its own price limit. Rows say their type in deal_class;
+// older rows without it are typed from the first product name in the headline.
+// over: max dollars above official MSRP (needs msrp). cap: max price, no MSRP needed. pct: max share above MSRP (with a dollar ceiling).
+const DEAL_RULES = {
+  box:          { label: 'Booster box',     over: 90,   desc: 'within $90 of MSRP' },
+  upc:          { label: 'UPC',             cap: 170,   desc: '$170 or less' },
+  etb:          { label: 'ETB',             cap: 80,    desc: '$80 or less' },
+  bundle:       { label: 'Booster bundle',  cap: 35,    desc: '$35 or less' },
+  double_pack:  { label: 'Double pack',     cap: 15.99, desc: '$15.99 or less' },
+  tin:          { label: 'Tin',             cap: 20,    desc: '$20 or less' },
+  sleeved_pack: { label: 'Sleeved pack',    cap: 6,     desc: '$6 or less' },
+  sealed:       { label: 'Sealed',          pct: 0.25, pctMax: 15, desc: 'within 25% of MSRP (max $15 over)' },
+};
+const DEAL_PATTERNS = [
+  ['sleeved_pack', /sleeved (?:booster )?packs?/i],
+  ['double_pack',  /double packs?(?! (?:display|box|case))/i],
+  ['tin',          /\btins?\b|tin pack|mini case set/i],
+  ['upc',          /ultra[- ]premium collection|super[- ]premium collection|\bUPC\b|\bSPC\b/i],
+  ['etb',          /elite trainer box(?:es)?|\bETBs?\b/i],
+  ['bundle',       /booster bundles?/i],
+  ['box',          /booster\s*(?:box|boxes|display|case)|display box|(?:collector|play) booster (?:box|display)|extra booster box|premium booster box|booster case/i],
+  ['sealed',       /poster collection|premium collection|special collection|illustration collection|figure collection|pin collection|ex box|blister|battle decks?|collection box|premium deck set/i],
+];
+const dealClassOf = (r) => {
+  if (r.deal_class && DEAL_RULES[r.deal_class]) return r.deal_class;
+  const h = r.headline || ''; let best = null, at = Infinity;
+  for (const [c, re] of DEAL_PATTERNS) { const m = h.match(re); if (m && m.index < at) { at = m.index; best = c; } }
+  return best;
+};
 const dealOf = (r) => {
   const price = Number(r.price), msrp = Number(r.msrp);
-  if (!(price > 0) || !(msrp > 0)) return null;
-  if (!BOX_RE.test(r.headline || '')) return null;
-  const over = price - msrp;
-  return over <= DEAL_MAX_OVER ? { price, msrp, over } : null;
+  if (!(price > 0)) return null;
+  const cls = dealClassOf(r); const rule = cls && DEAL_RULES[cls]; if (!rule) return null;
+  const hasMsrp = msrp > 0;
+  if (hasMsrp && price < msrp * 0.5) return null; // likely a pack price on a box listing: skip
+  let limit;
+  if (rule.cap != null) limit = rule.cap;
+  else if (!hasMsrp) return null;
+  else if (rule.over != null) limit = msrp + rule.over;
+  else limit = msrp + Math.min(msrp * rule.pct, rule.pctMax);
+  if (price > limit + 1e-9) return null;
+  return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label, limit, room: limit - price };
 };
+const dealPill = (d, short) => d.msrp != null
+  ? (d.over <= 0 ? 'at or under MSRP' : '+$' + (short ? Math.round(d.over) : d.over.toFixed(2)) + ' over' + (short ? ' MSRP' : ''))
+  : '$' + (short ? Math.round(d.room) : d.room.toFixed(2)) + ' under the $' + d.limit + ' limit';
 const dealLive = (r) => {
   const now = Date.now();
   if (r.happens && r.happens.length > 10) return new Date(r.happens).getTime() >= now;
@@ -884,14 +920,15 @@ const dealLive = (r) => {
 const fmtET = (s) => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; };
 function drawDeals(rows) {
   const sec = root.querySelector('#deals'), list = root.querySelector('#deals-list');
-  const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => a.d.over - b.d.over);
+  const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => b.d.room / b.d.limit - a.d.room / a.d.limit);
   list.replaceChildren(...deals.map(({ r, d }) => {
     const li = el('li');
     const hits = linkHL(li, r.headline, r.url, r.game);
     const meta = el('div', 'd-meta');
     const b = el('b', null, '$' + d.price.toFixed(2)); meta.appendChild(b);
-    meta.appendChild(el('span', null, 'MSRP $' + d.msrp.toFixed(2)));
-    meta.appendChild(el('span', 'deal-pill', d.over <= 0 ? 'at or under MSRP' : '+$' + d.over.toFixed(2) + ' over'));
+    meta.appendChild(el('span', null, d.label));
+    if (d.msrp != null) meta.appendChild(el('span', null, 'MSRP $' + d.msrp.toFixed(2)));
+    meta.appendChild(el('span', 'deal-pill', dealPill(d, false)));
     if (r.where) meta.appendChild(el('span', null, r.where));
     if (r.happens && r.happens.length > 10) meta.appendChild(el('span', null, 'ends ' + fmtET(r.happens)));
     li.appendChild(meta);
@@ -1097,7 +1134,7 @@ dash.onData(() => {
   if (news.status === 'ok') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
     drawDeals(all);
-    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealOf(r); if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + (dl.over <= 0 ? 'at or under MSRP' : '+$' + Math.round(dl.over) + ' over MSRP')); pdl.title = '$' + dl.price.toFixed(2) + ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : ''); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
+    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealOf(r); if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
       const td = el('td');
