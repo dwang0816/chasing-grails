@@ -60,7 +60,7 @@ a { color: inherit; }
 </style>
 </head>
 <body>
-<div class="pub-bar" id="pub-bar"><span><i class="dot"></i>Public copy of Chasing Grails · data updated <b id="pub-updated">…</b></span><span>Refreshed around 11 AM and 9 PM ET · Prices and dates link to their sources, so check before you buy</span></div>
+<div class="pub-bar" id="pub-bar"><span><i class="dot"></i>Public copy of Chasing Grails · data updated <b id="pub-updated">…</b></span><span>Refreshed around 11:30 AM and 10:30 PM ET · Prices and dates link to their sources, so check before you buy</span></div>
 <script>
 // Stand-in for the dashboard runtime: loads data/<id>.json on first read.
 (() => {
@@ -193,6 +193,10 @@ a { color: inherit; }
 .ch-verify.unconf::after { content: " source · unconfirmed"; font-weight: 400; }
 .ch-kw-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .ch-kw-legend .kw { font-weight: 600; }
+.kw-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.kw-tag { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 600; line-height: 1.5; border-radius: 999px; padding: 0 8px; color: color-mix(in srgb, var(--k) 80%, var(--color-fg)); background: color-mix(in srgb, var(--k) 10%, transparent); border: 1px solid color-mix(in srgb, var(--k) 45%, transparent); cursor: help; }
+.kw-tag .sub { font-weight: 400; color: var(--color-fg-muted); }
+.kw-tag.prod { border-style: dashed; }
 .ch { --ev-bandai: #06b6d4; --ev-cac: #22c55e; --ev-pax: #8b5cf6; --ev-anime: #ec4899; --ev-comic: #ef4444; --ev-riot: #e879f9; --ev-magic: #f97316; --ev-poke: #facc15; --ev-tcgcon: #10b981; }
 .ch-events td.ev-when.ev-tba::after { content: " · dates TBA"; font-weight: 400; color: var(--color-fg-muted); }
 .ch-events td.ev-when { border-left: 4px solid var(--ev, var(--color-border-line)); padding-left: var(--cds-pad-sm); white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -348,6 +352,47 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   .ch-verify.ok::after { content: ""; }
   .ch-verify.unconf::after { content: " · unconf."; }
 }
+
+/* Booster box deals alert */
+.ch-deals { border: 1px solid color-mix(in srgb, #22c55e 55%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #22c55e 14%, var(--color-bg)), var(--color-bg) 75%); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.ch-deals-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 700; font-size: var(--cds-font-size-heading); }
+.ch-deals-head .sub { font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-deals ul { list-style: none; margin: var(--cds-gap-sm) 0 0; padding: 0; display: grid; gap: var(--cds-gap-sm); }
+.ch-deals li { padding: 8px 0 0; border-top: 1px dashed color-mix(in srgb, #22c55e 35%, transparent); }
+.ch-deals li:first-child { border-top: 0; padding-top: 0; }
+.ch-deals .d-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ch-deals .d-meta b { color: var(--color-fg); }
+.deal-pill { display: inline-block; white-space: nowrap; font-size: var(--cds-font-size-caption); font-weight: 700; color: #052e16; background: #4ade80; border-radius: 999px; padding: 0 8px; margin-left: 4px; vertical-align: 1px; cursor: help; }
+.ch-table tr:has(td.is-deal) { background: color-mix(in srgb, #22c55e 9%, transparent); }
+.ch-table tr:has(td.is-deal) td:first-child { box-shadow: inset 3px 0 0 #22c55e; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal) { box-shadow: inset 3px 0 0 #22c55e; padding-left: 10px; } .ch-table tr:has(td.is-deal) td:first-child { box-shadow: none; } }
+/* Jump bar, show more, back to top: phone only */
+.ch-jump, .ch-more, .ch-top { display: none; }
+.ch-howto > summary { cursor: pointer; list-style: none; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
+.ch-howto > summary::-webkit-details-marker { display: none; }
+.ch-howto > summary::before { content: "▸ "; }
+.ch-howto[open] > summary::before { content: "▾ "; }
+@media (min-width: 641px) { .ch-howto > summary { display: none; } }
+@media (max-width: 640px) {
+  .ch-jump { display: flex; position: sticky; top: 0; z-index: 20; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--cds-pad-md, 10px)); padding: 8px var(--cds-pad-md, 10px); background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border-line); }
+  .ch-jump::-webkit-scrollbar { display: none; }
+  .ch-jump button { flex: none; font: inherit; font-size: 13px; font-weight: 600; min-height: 34px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel, transparent); color: var(--color-fg); }
+  .ch-jump button[aria-current="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .ch-jump button.deal { border-color: #22c55e; color: #22c55e; }
+  .ch-jump-target { scroll-margin-top: 60px; }
+  .ch-more { display: block; width: 100%; margin-top: 8px; min-height: 40px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); }
+  .ch-more[hidden] { display: none; }
+  .ch-table.clamp:not(.open) > tbody > tr:nth-child(n+6) { display: none; }
+  .ch-scroll, .ch-coming-scroll, .ch-fill-scroll, .ch-scroll.ch-draw-scroll { max-height: none !important; overflow: visible !important; }
+  .ch-top { position: fixed; right: 14px; bottom: 18px; z-index: 30; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--color-border-line); background: var(--color-fg); color: var(--color-bg); font-size: 20px; line-height: 1; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+  .ch-top.show { display: block; }
+  .ch-table tr { padding: 14px 0; gap: 8px 10px; }
+  .ch-table td.h { font-size: 15px; line-height: 1.5; }
+  .kw-tags { margin-top: 6px; }
+  .kw-tag { font-size: 11px; }
+  .ch-why { font-size: 13px; }
+  .ch-deals { padding: var(--cds-pad-md); }
+}
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
@@ -359,6 +404,8 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <button class="ch-theme" type="button" aria-label="Switch light or dark">☀ Light</button>
     </div>
     <p>MSRP lives at official stores, so that's the focus. Right now: <b data-source="news_by_channel" data-field="items" data-where="channel=Official" class="dash-skeleton">—</b> official releases and drops on the radar, <b data-source="news_by_channel" data-field="items" data-where="channel=Drawing" class="dash-skeleton">—</b> drawings to enter, and <b data-source="news_by_channel" data-field="items" data-where="channel=Big-box" class="dash-skeleton">—</b> big-box retail alerts from X.</p>
+    <details class="ch-howto" open>
+    <summary>How to read this page</summary>
     <div class="ch-legend">
       <span class="acc-official"><i class="ch-dot"></i>Official · MSRP, top priority</span>
       <span class="acc-draw"><i class="ch-dot"></i>Drawings · enter for a chance to buy</span>
@@ -367,15 +414,37 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <span class="acc-market"><i class="ch-dot"></i>Marketplaces · resale, above MSRP</span>
       <span class="acc-import"><i class="ch-dot"></i>Japan imports · low priority</span>
     </div>
-    <div class="ch-kw-legend" style="margin-top: var(--cds-gap-sm);">
+    <div class="ch-kw-legend" style="margin-top: var(--cds-gap-sm);" data-source="keywords">
       <span>Highlights:</span>
       <span class="kw" style="--k:#38bdf8">Main set</span>
       <span class="kw" style="--k:#a78bfa">Extra / special booster</span>
       <span class="kw" style="--k:#fbbf24">Premium &amp; collector</span>
       <span class="kw" style="--k:#f472b6">Limited drop</span>
       <span class="kw" style="--k:#34d399">Event</span>
+      <span class="kw" style="--k:#94a3b8">Product type</span>
+      <span class="ch-muted">Tags under each item say which set it's from and what kind of product it is.</span>
     </div>
+    </details>
   </header>
+
+  <nav class="ch-jump" id="jump" aria-label="Jump to a section">
+    <button type="button" class="deal" data-jump="deals" hidden>🔥 Deals</button>
+    <button type="button" data-jump="coming-up">Coming up</button>
+    <button type="button" data-jump="drawings">Drawings</button>
+    <button type="button" data-jump="official-list">Official</button>
+    <button type="button" data-jump="bigbox-news">Big-box</button>
+    <button type="button" data-jump="other-news">Game stores</button>
+    <button type="button" data-jump="bandai-log">Bandai log</button>
+    <button type="button" data-jump="conventions">Events</button>
+    <button type="button" data-jump="card-shows">Card shows</button>
+    <button type="button" data-jump="where-to-buy">Shops</button>
+  </nav>
+
+  <section class="ch-deals ch-jump-target" id="deals" hidden data-source="news">
+    <div class="ch-deals-head">🔥 Booster box deals <span class="sub">within $90 of MSRP · grab them before they sell out</span></div>
+    <ul id="deals-list"></ul>
+  </section>
+  <button type="button" class="ch-top" id="to-top" aria-label="Back to top">↑</button>
 
   <!-- NEWS -->
   <section id="news">
@@ -397,14 +466,14 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
             <span class="ch-live" data-window="pb">—</span>
           </div>
         </div>
-        <div class="ch-coming" id="coming-up">
+        <div class="ch-coming ch-jump-target" id="coming-up">
           <p class="ch-label">Coming up · official only</p>
           <div class="ch-coming-scroll">
             <table class="ch-table" id="coming-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">When</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
             <div class="ch-empty" hidden>Nothing official dated ahead.</div>
           </div>
         </div>
-        <p class="ch-label">Releases, events &amp; estimates · by month posted, last 6 months</p>
+        <p class="ch-label ch-jump-target" id="official-list">Releases, events &amp; estimates · by month posted, last 6 months</p>
         <div class="ch-months" id="official-months"></div>
         <div class="ch-scroll">
           <table class="ch-table" id="official-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="type">Type</th><th data-field="account" class="ch-hide-narrow">Source</th><th data-field="verified">Checked</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
@@ -413,7 +482,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       </article>
 
       <div class="ch-news-side">
-        <article class="ch-card acc-draw" id="drawings">
+        <article class="ch-card acc-draw ch-jump-target" id="drawings">
           <h2>Drawings &amp; raffles <span class="ch-badge">Enter to win a chance to buy</span></h2>
           <p class="ch-why">Not drops — you enter, and winners get to buy at retail. Who's running them right now:</p>
           <div class="ch-who">
@@ -429,7 +498,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
           </div>
         </article>
 
-        <article class="ch-card acc-official" id="bandai-log">
+        <article class="ch-card acc-official ch-jump-target" id="bandai-log">
           <h2>Premium Bandai drop log <span class="c">from OP TCG Market Discord</span></h2>
           <p class="ch-why">Every card drop since July from the server's Bandai monitor, checked once a day. Nearly all hit at <b>9pm or 10pm ET</b>.</p>
           <div class="ch-fill-scroll">
@@ -440,7 +509,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       </div>
     </div>
 
-    <article class="ch-card acc-bigbox" id="bigbox-news" style="margin-top: var(--cds-gap-md);">
+    <article class="ch-card acc-bigbox ch-jump-target" id="bigbox-news" style="margin-top: var(--cds-gap-md);">
       <h2>Big-box retail <span class="ch-badge">Retail price</span></h2>
       <p class="ch-why">Target, Walmart, Best Buy, Amazon and friends. Restocks, drops and store promos from X — drawings live in their own section above.</p>
       <div class="ch-bigbox-grid"><div class="ch-windows" style="margin-top:0">
@@ -464,7 +533,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       </div>
     </article>
 
-    <details open class="ch-card ch-other" id="other-news" style="margin-top: var(--cds-gap-md); --acc: var(--color-border-line);">
+    <details open class="ch-card ch-other ch-jump-target" id="other-news" style="margin-top: var(--cds-gap-md); --acc: var(--color-border-line);">
       <summary>Game stores &amp; other drops <span class="ch-muted" style="font-weight:400; font-size: var(--cds-font-size-caption);">preorders, premium items, resale and imports · click to collapse</span></summary>
       <div class="ch-xscroll">
       <table class="ch-table" id="other-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="where">Where</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
@@ -474,7 +543,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   </section>
 
   <!-- CONVENTIONS -->
-  <section id="conventions">
+  <section class="ch-jump-target" id="conventions">
     <h2 class="ch-section-title">Conventions &amp; big events</h2>
     <p class="ch-section-sub">Big conventions and championships — next up first. Every date is checked against 2–3 sources (hover the Checked badge). Ticket links go to the official page; nothing is bought for you.</p>
     <div class="ch-legend" style="margin: 0 0 var(--cds-gap-md);">
@@ -497,7 +566,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   </section>
 
   <!-- CARD SHOWS -->
-  <section id="card-shows">
+  <section class="ch-jump-target" id="card-shows">
     <h2 class="ch-section-title">Card shows</h2>
     <p class="ch-section-sub">Local card shows from TCDB, the community card-show calendar. Pick a state, then flip through months or search a town or show. Dates and hours are the organizers' own listings, so check the show page before you go. <span id="shows-count"></span></p>
     <div class="ch-shows-bar">
@@ -527,7 +596,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   </section>
 
   <!-- WHERE TO BUY -->
-  <section id="where-to-buy">
+  <section class="ch-jump-target" id="where-to-buy">
     <h2 class="ch-section-title">Marketplace</h2>
     <p class="ch-section-sub">Every place to buy, from MSRP down to resale. Tap a game to filter the whole page, or a channel to show just that one. Each card opens the store.</p>
 
@@ -538,6 +607,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <button class="ch-tile" data-game="bandai_other"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Other Bandai">—</span><span class="t">Other Bandai</span></button>
       <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
       <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
+      <button class="ch-tile" data-game="riftbound"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Riftbound">—</span><span class="t">Riftbound</span></button>
     </div>
 
     <div class="ch-chips" id="filters">
@@ -646,7 +716,7 @@ dash.calc('by_game', {
   description: 'Counts sources marked Yes for each game, fewest first.',
   fn: (sources) => [
     ['one_piece', 'One Piece'], ['pokemon', 'Pokémon'], ['mtg', 'MTG'],
-    ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'],
+    ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'], ['riftbound', 'Riftbound'],
   ].map(([key, game]) => ({ game, sources: sources.filter((r) => r[key] === 'Yes').length }))
    .sort((a, b) => a.sources - b.sources),
 });
@@ -663,7 +733,7 @@ dash.calc('news_by_channel', {
   fn: (news) => ['Official', 'Drawing', 'Big-box', 'Other'].map((channel) => ({ channel, items: news.filter((r) => r.channel === channel).length })),
 });
 
-const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz' };
+const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz', riftbound: 'Riftbound' };
 const TCG_COLOR = { 'One Piece': '#ef4444', 'Pokémon': '#facc15', 'MTG': '#f97316', 'Other Bandai': '#3b82f6', 'Divine Cross': '#a855f7', 'Weiss Schwarz': '#14b8a6', 'Riftbound': '#e879f9' };
 const STORE_COLOR = [
   ['Pokémon Center', '#ec4899'], ['Premium Bandai', '#06b6d4'], ['Secret Lair', '#8b5cf6'],
@@ -701,35 +771,155 @@ const linkCell = (td, name, url) => {
 };
 // Keyword highlighting by kind of drop. Text stays the same; matches are wrapped in colored marks.
 const KW_RULES = [
-  ['premium', /Premium Card Collection(?::?(?:\s+(?:[A-Z0-9][\w.’'-]*|vol\.\d+|\/))+)?(?:\s*\((?!new|restock|relisted|listed)[^)]*\))?|Gift Collection(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\((?!new|restock|relisted|listed)[^)]*\))?|Ditto Premium Collection|Premium Collection|\b(?:Japanese|Chinese)\s+\d+(?:st|nd|rd|th) Anniversary Set|\d+(?:st|nd|rd|th) Anniversary (?:Set|Edition)|Premium Goods Set(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\[[A-Z0-9]+\])?|Best Selection vol\.\d+|Deck Build Box(?::(?:\s+[A-Z0-9][\w.’'-]*)+)?(?:\s*\[[A-Z0-9]+\])?/g],
-  ['extra', /Heroines Edition Vol\.?\s?\d+(?:\s*\(EB-?\d+\))?|\bEB-?\d{2}\b|\bPRB-?\d{2}\b|30th Celebration|Masters Ultra-Bout Series \d+/gi],
-  ['limited', /Secret Lair(?:\s+bundles?)?|Reality Fracture Collector Booster box|ONE PIECE DAY 20\d\d|(?:Weekly |Saikyo |V )?Jump (?:Starter Deck|promo[s]?)/gi],
-  ['event', /pre-release events?|Championship[^,;]*|Regionals?|Card Games Fest/gi],
-  ['set', /\bOP-?\d{2}(?:\s+(?:The|[A-Z][\w’']+)(?:\s+(?:of|the|[A-Z][\w’']+))*)?|\bST-?\d{2}\b|\bSC\d{2}\b|\bPB\d{2}\b|Delta Reign|Prismatic Evolutions|Chaos Rising|Pitch Black|Phantasmal Flames|Ascended Heroes|Perfect Order|Reality Fracture|Dominance of God/g],
+  ['extra', /\bEB-?\d{2}\b|\bPRB-?\d{2}\b/g],
+  ['set', /\bOP-?\d{2}\b|\bGD\d{2}\b|\bFB\d{2}\b/g],
+  ['product', /\bST-?\d{2}\b/g],
 ];
-const KW_COLOR = { set: '#38bdf8', extra: '#a78bfa', premium: '#fbbf24', event: '#34d399', limited: '#f472b6' };
-const KW_LABEL = { set: 'Main set', extra: 'Extra / special booster', premium: 'Premium & collector', event: 'Event', limited: 'Limited drop' };
-const appendHL = (parent, text) => {
+const KW_COLOR = { set: '#38bdf8', extra: '#a78bfa', premium: '#fbbf24', event: '#34d399', limited: '#f472b6', product: '#94a3b8' };
+const KW_LABEL = { set: 'Main set', extra: 'Extra / special booster', premium: 'Premium & collector', event: 'Event', limited: 'Limited drop', product: 'Product type' };
+// Keyword dictionary (keywords dataset): each row names a set, special product or product type, with the set and product it
+// stands for. Rows marked strict only match items from their own game, for words that mean something else in another TCG.
+const KWD = { src: null, rules: [] };
+const kwEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const kwBuild = (rows) => {
+  if (KWD.src === rows) return KWD.rules;
+  KWD.src = rows;
+  KWD.rules = [];
+  rows.forEach((r) => {
+    const terms = [r.term].concat((r.aliases || '').split('|')).map((s) => (s || '').trim()).filter(Boolean);
+    let re = null;
+    try {
+      if (r.regex) re = new RegExp(r.regex, 'gi');
+      else if (terms.length) re = new RegExp('(?<![\\w-])(?:' + terms.sort((a, b) => b.length - a.length).map(kwEsc).join('|') + ')(?![\\w-])', 'gi');
+    } catch (e) { re = null; }
+    if (re) KWD.rules.push({ re, row: r });
+  });
+  return KWD.rules;
+};
+const kwHits = (text, game) => {
   const hits = [];
-  KW_RULES.forEach(([kind, re]) => { re.lastIndex = 0; let m; while ((m = re.exec(text))) { if (m[0].trim()) hits.push({ s: m.index, e: m.index + m[0].replace(/\s+$/, '').length, kind }); } });
-  hits.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
+  const kd = dash.data('keywords');
+  if (kd.status === 'ok' && Array.isArray(kd.data)) {
+    kwBuild(kd.data).forEach(({ re, row }) => {
+      if (row.strict === 'Yes' && row.game && game && row.game !== game) return;
+      if (row.strict === 'Yes' && row.game && !game) return;
+      if (row.game && game && row.game !== game && row.kind !== 'product') return;
+      re.lastIndex = 0; let m;
+      while ((m = re.exec(text))) { if (!m[0].trim()) { re.lastIndex++; continue; } hits.push({ s: m.index, e: m.index + m[0].replace(/\s+$/, '').length, kind: KW_COLOR[row.kind] ? row.kind : 'set', row }); }
+    });
+  }
+  // Built-in patterns stay as a fallback for codes and lines the dictionary doesn't list yet.
+  KW_RULES.forEach(([kind, re]) => { re.lastIndex = 0; let m; while ((m = re.exec(text))) { if (m[0].trim()) hits.push({ s: m.index, e: m.index + m[0].replace(/\s+$/, '').length, kind, row: null }); } });
+  hits.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s) || (b.row ? 1 : 0) - (a.row ? 1 : 0));
+  const out = []; let pos = 0;
+  hits.forEach((h) => { if (h.s >= pos) { out.push(h); pos = h.e; } });
+  out.all = hits;
+  return out;
+};
+const appendHL = (parent, text, game) => {
+  const hits = kwHits(text || '', game);
   let pos = 0;
   hits.forEach((h) => {
-    if (h.s < pos) return;
     if (h.s > pos) parent.appendChild(document.createTextNode(text.slice(pos, h.s)));
-    const k = el('span', 'kw', text.slice(h.s, h.e)); k.style.setProperty('--k', KW_COLOR[h.kind]); k.title = KW_LABEL[h.kind];
+    const k = el('span', 'kw', text.slice(h.s, h.e)); k.style.setProperty('--k', KW_COLOR[h.kind]);
+    k.title = h.row ? [KW_LABEL[h.kind], h.row.set && h.row.set !== h.row.term ? h.row.set : '', h.row.note || ''].filter(Boolean).join(' · ') : KW_LABEL[h.kind];
     parent.appendChild(k); pos = h.e;
   });
-  if (pos < text.length) parent.appendChild(document.createTextNode(text.slice(pos)));
+  if (pos < (text || '').length) parent.appendChild(document.createTextNode(text.slice(pos)));
+  return hits.all;
 };
-const linkHL = (td, text, url) => {
+// What it is: the set it belongs to and the kind of product, read from the matched keywords.
+const kwTags = (hits) => {
+  const rows = (hits || []).slice().sort((a, b) => a.s - b.s).map((h) => h.row).filter(Boolean);
+  const sets = [], prods = [];
+  rows.forEach((r) => {
+    if (r.set && !sets.some((x) => x.set === r.set)) sets.push(r);
+    const pr = r.kind === 'product' ? (r.product || r.term) : r.product;
+    if (pr && !prods.includes(pr)) prods.push(pr);
+  });
+  const tags = [];
+  sets.slice(0, 3).forEach((setRow) => {
+    const kind = setRow.set_kind || (['set', 'extra'].includes(setRow.kind) ? setRow.kind : 'set');
+    const t = el('span', 'kw-tag'); t.style.setProperty('--k', KW_COLOR[kind] || KW_COLOR.set);
+    t.appendChild(document.createTextNode(setRow.set));
+    const sub = [setRow.set_code, setRow.set_type].filter(Boolean).join(' · ');
+    if (sub) t.appendChild(el('span', 'sub', sub));
+    t.title = ['Set', setRow.game, setRow.release ? 'release ' + setRow.release : '', setRow.note].filter(Boolean).join(' · ');
+    tags.push(t);
+  });
+  prods.slice(0, 3).forEach((prod) => {
+    const t = el('span', 'kw-tag prod', prod); t.style.setProperty('--k', KW_COLOR.product);
+    t.title = 'Product type'; tags.push(t);
+  });
+  if (!tags.length) return null;
+  const w = el('div', 'kw-tags'); tags.forEach((x) => w.appendChild(x)); return w;
+};
+const linkHL = (td, text, url, game) => {
   const holder = url ? el('a') : el('span', 'ch-nolink');
   if (url) { holder.href = url; holder.target = '_blank'; holder.rel = 'noopener noreferrer'; }
-  appendHL(holder, text); td.appendChild(holder);
+  const hits = appendHL(holder, text, game); td.appendChild(holder);
+  return hits;
 };
 const TYPE_COLOR = { Release: '#38bdf8', Estimate: '#94a3b8', Event: '#34d399', Drop: '#22c55e', Restock: '#22c55e', 'In stock': '#22c55e', Preorder: '#f59e0b', Drawing: '#f59e0b', Invite: '#f59e0b', Promo: '#f472b6' };
 const setText = (node, v) => { node.textContent = v; node.classList.remove('dash-skeleton'); };
 const fmtPosted = (s) => { const d = new Date(s); return isNaN(d) ? s : d3.timeFormat('%b %-d, %-I:%M %p')(d); };
+
+// Booster box deal: a price within $90 of MSRP on anything booster-box related.
+const DEAL_MAX_OVER = 90;
+const BOX_RE = /booster\s*(?:box|boxes|display|case)|display box|(?:collector|play) booster (?:box|display)|extra booster box|premium booster box|mini case set|booster case/i;
+const dealOf = (r) => {
+  const price = Number(r.price), msrp = Number(r.msrp);
+  if (!(price > 0) || !(msrp > 0)) return null;
+  if (!BOX_RE.test(r.headline || '')) return null;
+  const over = price - msrp;
+  return over <= DEAL_MAX_OVER ? { price, msrp, over } : null;
+};
+const dealLive = (r) => {
+  const now = Date.now();
+  if (r.happens && r.happens.length > 10) return new Date(r.happens).getTime() >= now;
+  if (r.happens) return new Date(r.happens + 'T23:59:59').getTime() >= now;
+  return now - new Date(r.at).getTime() <= 3 * 864e5;
+};
+const fmtET = (s) => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; };
+function drawDeals(rows) {
+  const sec = root.querySelector('#deals'), list = root.querySelector('#deals-list');
+  const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => a.d.over - b.d.over);
+  list.replaceChildren(...deals.map(({ r, d }) => {
+    const li = el('li');
+    const hits = linkHL(li, r.headline, r.url, r.game);
+    const meta = el('div', 'd-meta');
+    const b = el('b', null, '$' + d.price.toFixed(2)); meta.appendChild(b);
+    meta.appendChild(el('span', null, 'MSRP $' + d.msrp.toFixed(2)));
+    meta.appendChild(el('span', 'deal-pill', d.over <= 0 ? 'at or under MSRP' : '+$' + d.over.toFixed(2) + ' over'));
+    if (r.where) meta.appendChild(el('span', null, r.where));
+    if (r.happens && r.happens.length > 10) meta.appendChild(el('span', null, 'ends ' + fmtET(r.happens)));
+    li.appendChild(meta);
+    const tg = kwTags(hits); if (tg) li.appendChild(tg);
+    return li;
+  }));
+  sec.hidden = deals.length === 0;
+  const jb = root.querySelector('.ch-jump [data-jump="deals"]'); if (jb) jb.hidden = deals.length === 0;
+}
+// Phone jump bar: tap to scroll; highlights the section in view.
+(() => {
+  const bar = root.querySelector('#jump'); if (!bar) return;
+  bar.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-jump]'); if (!b) return;
+    const tgt = root.querySelector('#' + b.dataset.jump);
+    if (tgt) { if (tgt.tagName === 'DETAILS') tgt.open = true; tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  const btns = [...bar.querySelectorAll('button[data-jump]')];
+  const setActive = (id) => btns.forEach((b) => { const on = b.dataset.jump === id; b.setAttribute('aria-current', String(on)); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center' }); });
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((ents) => { ents.filter((x) => x.isIntersecting).forEach((x) => setActive(x.target.id)); }, { rootMargin: '-70px 0px -70% 0px' });
+    btns.forEach((b) => { const tgt = root.querySelector('#' + b.dataset.jump); if (tgt) io.observe(tgt); });
+  }
+  const top = root.querySelector('#to-top');
+  top.addEventListener('click', () => root.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  const onScroll = () => top.classList.toggle('show', root.getBoundingClientRect().top < -700);
+  window.addEventListener('scroll', onScroll, { passive: true }); document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+  if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) { const h = root.querySelector('.ch-howto'); if (h) h.open = false; }
+})();
 const fmtWhen = (s) => { if (!s) return ''; const d = new Date(s); if (isNaN(d)) return s; return s.length <= 10 ? d3.utcFormat('%a %b %-d')(d) : d3.timeFormat('%a %b %-d, %-I %p')(d); };
 const typeClass = (t) => (['Restock', 'In stock', 'Drop'].includes(t) ? 't-now' : ['Preorder', 'Drawing', 'Invite'].includes(t) ? 't-soon' : 't-info');
 
@@ -770,7 +960,21 @@ const fillTable = (table, rows, cols) => {
   table.hidden = rows.length === 0;
   const empty = table.parentElement.querySelector(':scope > .ch-empty');
   if (empty) empty.hidden = rows.length !== 0;
+  clampTable(table, rows.length);
 };
+// Phones: show 5 rows, then a "Show all" button (no scroll boxes inside the page).
+function clampTable(table, n) {
+  table.classList.add('clamp');
+  let btn = table.parentElement.querySelector(':scope > .ch-more[data-for="' + table.id + '"]');
+  if (!btn) {
+    btn = el('button', 'ch-more'); btn.type = 'button'; btn.dataset.for = table.id;
+    table.after(btn);
+    btn.addEventListener('click', () => { const open = table.classList.toggle('open'); btn.textContent = open ? 'Show less' : 'Show all ' + btn.dataset.n; if (!open) table.scrollIntoView({ block: 'nearest' }); });
+  }
+  btn.dataset.n = n;
+  btn.hidden = n <= 5;
+  btn.textContent = table.classList.contains('open') ? 'Show less' : 'Show all ' + n;
+}
 
 // ---- Card shows: lazy load, per-state index, local controls ----
 const ST_NAME = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, DC',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
@@ -891,7 +1095,8 @@ dash.onData(() => {
   const news = dash.data('news');
   if (news.status === 'ok') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
-    const headline = (r) => { const td = el('td', 'h'); linkHL(td, r.headline, r.url); if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } return td; };
+    drawDeals(all);
+    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealOf(r); if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + (dl.over <= 0 ? 'at or under MSRP' : '+$' + Math.round(dl.over) + ' over MSRP')); pdl.title = '$' + dl.price.toFixed(2) + ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : ''); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
       const td = el('td');
@@ -986,12 +1191,13 @@ dash.onData(() => {
       else tk.appendChild(el('span', 'ch-ticket ' + cls, r.tickets));
       tr.appendChild(tk);
       const ck = el('td'); if (r.verified !== '' && r.verified != null) { const v = el('span', 'ch-verify ' + (Number(r.verified) >= 2 ? 'ok' : 'unconf'), String(r.verified)); v.title = r.verified_by || ''; ck.appendChild(v); } else if (r.verified_by) { ck.title = r.verified_by; } tr.appendChild(ck);
-      const hl = el('td', 'ev-hl', r.highlights || ''); hl.style.minWidth = '16rem'; tr.appendChild(hl);
+      const hl = el('td', 'ev-hl'); appendHL(hl, r.highlights || '', (r.games || '').split(' · ').length === 1 ? r.games : ''); hl.style.minWidth = '16rem'; tr.appendChild(hl);
       const nt = el('td', 'ch-muted ch-hide-narrow', r.notes); nt.style.minWidth = '12rem'; tr.appendChild(nt);
       tbody.appendChild(tr);
     });
     const tbl = root.querySelector('#events-table');
     tbl.hidden = evs.length === 0;
+    clampTable(tbl, evs.length);
     tbl.parentElement.querySelector(':scope > .ch-empty').hidden = evs.length !== 0;
   }
 
@@ -1003,7 +1209,7 @@ dash.onData(() => {
     const rows = bd.data.filter((r) => gameOk(r.game || 'One Piece')).slice().sort((a, b) => new Date(b.dropped_at) - new Date(a.dropped_at));
     fillTable(root.querySelector('#bandai-table'), rows, [
       (r) => el('td', 'ch-when', fmtPosted(r.dropped_at)),
-      (r) => { const td = el('td', 'h'); linkHL(td, r.item, r.url); return td; },
+      (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.item, r.url, r.game || 'One Piece'); const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; },
       (r) => el('td', 'ch-muted', r.price || ''),
       (r) => el('td', 'ch-muted ch-hide-narrow', r.status || ''),
     ]);
