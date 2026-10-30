@@ -608,6 +608,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
       <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
       <button class="ch-tile" data-game="riftbound"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Riftbound">—</span><span class="t">Riftbound</span></button>
+      <button class="ch-tile" data-game="cyberpunk"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Cyberpunk">—</span><span class="t">Cyberpunk</span></button>
     </div>
 
     <div class="ch-chips" id="filters">
@@ -716,7 +717,7 @@ dash.calc('by_game', {
   description: 'Counts sources marked Yes for each game, fewest first.',
   fn: (sources) => [
     ['one_piece', 'One Piece'], ['pokemon', 'Pokémon'], ['mtg', 'MTG'],
-    ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'], ['riftbound', 'Riftbound'],
+    ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'], ['riftbound', 'Riftbound'], ['cyberpunk', 'Cyberpunk'],
   ].map(([key, game]) => ({ game, sources: sources.filter((r) => r[key] === 'Yes').length }))
    .sort((a, b) => a.sources - b.sources),
 });
@@ -733,8 +734,8 @@ dash.calc('news_by_channel', {
   fn: (news) => ['Official', 'Drawing', 'Big-box', 'Other'].map((channel) => ({ channel, items: news.filter((r) => r.channel === channel).length })),
 });
 
-const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz', riftbound: 'Riftbound' };
-const TCG_COLOR = { 'One Piece': '#ef4444', 'Pokémon': '#facc15', 'MTG': '#f97316', 'Other Bandai': '#3b82f6', 'Divine Cross': '#a855f7', 'Weiss Schwarz': '#14b8a6', 'Riftbound': '#e879f9' };
+const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz', riftbound: 'Riftbound', cyberpunk: 'Cyberpunk' };
+const TCG_COLOR = { 'One Piece': '#ef4444', 'Pokémon': '#facc15', 'MTG': '#f97316', 'Other Bandai': '#3b82f6', 'Divine Cross': '#a855f7', 'Weiss Schwarz': '#14b8a6', 'Riftbound': '#e879f9', 'Cyberpunk': '#22d3ee' };
 const STORE_COLOR = [
   ['Pokémon Center', '#ec4899'], ['Premium Bandai', '#06b6d4'], ['Secret Lair', '#8b5cf6'],
   ['Walmart', '#2563eb'], ['Target', '#dc2626'], ['Best Buy', '#eab308'], ['Amazon', '#f59e0b'],
