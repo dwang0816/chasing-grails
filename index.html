@@ -366,24 +366,14 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 .ch-table tr:has(td.is-deal) { background: color-mix(in srgb, #22c55e 9%, transparent); }
 .ch-table tr:has(td.is-deal) td:first-child { box-shadow: inset 3px 0 0 #22c55e; }
 @media (max-width: 640px) { .ch-table tr:has(td.is-deal) { box-shadow: inset 3px 0 0 #22c55e; padding-left: 10px; } .ch-table tr:has(td.is-deal) td:first-child { box-shadow: none; } }
-/* Jump bar, show more, back to top: phone only */
-.ch-jump, .ch-more, .ch-top { display: none; }
+/* Back to top: phone only */
+.ch-top { display: none; }
 .ch-howto > summary { cursor: pointer; list-style: none; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
 .ch-howto > summary::-webkit-details-marker { display: none; }
 .ch-howto > summary::before { content: "▸ "; }
 .ch-howto[open] > summary::before { content: "▾ "; }
 @media (min-width: 641px) { .ch-howto > summary { display: none; } }
 @media (max-width: 640px) {
-  .ch-jump { display: flex; position: sticky; top: 0; z-index: 20; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--cds-pad-md, 10px)); padding: 8px var(--cds-pad-md, 10px); background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border-line); }
-  .ch-jump::-webkit-scrollbar { display: none; }
-  .ch-jump button { flex: none; font: inherit; font-size: 13px; font-weight: 600; min-height: 34px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel, transparent); color: var(--color-fg); }
-  .ch-jump button[aria-current="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
-  .ch-jump button.deal { border-color: #22c55e; color: #22c55e; }
-  .ch-jump-target { scroll-margin-top: 60px; }
-  .ch-more { display: block; width: 100%; margin-top: 8px; min-height: 40px; font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); }
-  .ch-more[hidden] { display: none; }
-  .ch-table.clamp:not(.open) > tbody > tr:nth-child(n+6) { display: none; }
-  .ch-scroll, .ch-coming-scroll, .ch-fill-scroll, .ch-scroll.ch-draw-scroll { max-height: none !important; overflow: visible !important; }
   .ch-top { position: fixed; right: 14px; bottom: 18px; z-index: 30; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--color-border-line); background: var(--color-fg); color: var(--color-bg); font-size: 20px; line-height: 1; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
   .ch-top.show { display: block; }
   .ch-table tr { padding: 14px 0; gap: 8px 10px; }
@@ -393,6 +383,42 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   .ch-why { font-size: 13px; }
   .ch-deals { padding: var(--cds-pad-md); }
 }
+
+/* Pages: one section per page, picked from the nav (#/drawings, #/events, ...) */
+.ch-page { display: grid; gap: var(--cds-gap-md); min-width: 0; }
+.ch-page[hidden] { display: none; }
+.ch-nav { position: sticky; top: 0; z-index: 20; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 8px 16px; background: color-mix(in srgb, var(--color-bg) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-border-line); }
+.ch-nav::-webkit-scrollbar { display: none; }
+.ch-nav a { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; min-height: 34px; box-sizing: border-box; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel, transparent); color: var(--color-fg); text-decoration: none; white-space: nowrap; }
+.ch-nav a:hover { border-color: var(--color-fg-muted); }
+.ch-nav a[aria-current="page"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.ch-nav a:focus-visible { outline: 2px solid var(--color-fg-muted); outline-offset: 2px; }
+.ch-nav .deal-n { font-size: 11px; font-weight: 700; color: #052e16; background: #4ade80; border-radius: 999px; padding: 0 6px; }
+.ch-nav .deal-n[hidden] { display: none; }
+.ch-head h1 a { color: inherit; text-decoration: none; }
+.ch-head-tools { display: flex; align-items: center; gap: var(--cds-gap-sm); flex-wrap: wrap; justify-content: flex-end; }
+.ch-pick { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+.ch-pick.on { border-color: var(--c, var(--color-fg)); box-shadow: inset 0 0 0 1px var(--c, var(--color-fg)); }
+.ch-head [hidden] { display: none; }
+.ch-go-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-sm); }
+.ch-go { display: flex; flex-direction: column; gap: 4px; padding: var(--cds-pad-md) var(--cds-pad-lg); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); border-left: 3px solid var(--acc, var(--color-border-line)); background: var(--color-panel); color: var(--color-fg); text-decoration: none; }
+.ch-go:hover { border-color: var(--acc, var(--color-fg-muted)); }
+.ch-go .g-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cds-gap-sm); font-weight: 600; font-size: var(--cds-font-size-heading); }
+.ch-go .g-n { font-size: var(--cds-font-size-caption); font-weight: 500; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ch-go .g-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.acc-draw-go { --acc: var(--acc-draw); }
+/* Each page has room for everything: no inner scroll boxes or "show all" clamps */
+.ch-scroll, .ch-coming-scroll, .ch-fill-scroll, .ch-scroll.ch-draw-scroll { max-height: none !important; overflow-y: visible; overflow-x: auto; flex: none; min-height: 0; }
+.ch-scroll th, .ch-coming-scroll th, .ch-fill-scroll th { position: static; }
+@media (max-width: 640px) {
+  .ch-nav { margin: 0 -16px; padding: 8px 16px; }
+  .ch-scroll, .ch-coming-scroll, .ch-fill-scroll, .ch-scroll.ch-draw-scroll { overflow: visible !important; }
+  .ch-go .g-top { font-size: 15px; }
+  .ch-go .g-sub { font-size: 13px; }
+  .ch-pick { min-height: 36px; font-size: 13px; }
+  .kw-tag { white-space: normal; max-width: 100%; box-sizing: border-box; flex-wrap: wrap; border-radius: 10px; }
+  .ch-page { overflow-x: clip; }
+}
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
@@ -400,11 +426,24 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 <div class="ch">
   <header class="ch-head" id="overview">
     <div style="display:flex; align-items:baseline; justify-content:space-between; gap: var(--cds-gap-md);">
-      <h1>Chasing Grails</h1>
-      <button class="ch-theme" type="button" aria-label="Switch light or dark">☀ Light</button>
+      <h1><a href="#/">Chasing Grails</a></h1>
+      <div class="ch-head-tools">
+        <select class="ch-pick" id="game-pick" aria-label="Show one game">
+          <option value="all">All games</option>
+          <option value="one_piece">One Piece</option>
+          <option value="pokemon">Pokémon</option>
+          <option value="mtg">MTG</option>
+          <option value="bandai_other">Other Bandai</option>
+          <option value="divine_cross">Divine Cross</option>
+          <option value="weiss_schwarz">Weiss Schwarz</option>
+          <option value="riftbound">Riftbound</option>
+          <option value="cyberpunk">Cyberpunk</option>
+        </select>
+        <button class="ch-theme" type="button" aria-label="Switch light or dark">☀ Light</button>
+      </div>
     </div>
-    <p>MSRP lives at official stores, so that's the focus. Right now: <b data-source="news_by_channel" data-field="items" data-where="channel=Official" class="dash-skeleton">—</b> official releases and drops on the radar, <b data-source="news_by_channel" data-field="items" data-where="channel=Drawing" class="dash-skeleton">—</b> drawings to enter, and <b data-source="news_by_channel" data-field="items" data-where="channel=Big-box" class="dash-skeleton">—</b> big-box retail alerts from X.</p>
-    <details class="ch-howto" open>
+    <p data-home>MSRP lives at official stores, so that's the focus. Right now: <b data-source="news_by_channel" data-field="items" data-where="channel=Official" class="dash-skeleton">—</b> official releases and drops on the radar, <b data-source="news_by_channel" data-field="items" data-where="channel=Drawing" class="dash-skeleton">—</b> drawings to enter, and <b data-source="news_by_channel" data-field="items" data-where="channel=Big-box" class="dash-skeleton">—</b> big-box retail alerts from X.</p>
+    <details class="ch-howto" data-home open>
     <summary>How to read this page</summary>
     <div class="ch-legend">
       <span class="acc-official"><i class="ch-dot"></i>Official · MSRP, top priority</span>
@@ -427,96 +466,100 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
     </details>
   </header>
 
-  <nav class="ch-jump" id="jump" aria-label="Jump to a section">
-    <button type="button" class="deal" data-jump="deals" hidden>🔥 Deals</button>
-    <button type="button" data-jump="coming-up">Coming up</button>
-    <button type="button" data-jump="drawings">Drawings</button>
-    <button type="button" data-jump="official-list">Official</button>
-    <button type="button" data-jump="bigbox-news">Big-box</button>
-    <button type="button" data-jump="other-news">Game stores</button>
-    <button type="button" data-jump="bandai-log">Bandai log</button>
-    <button type="button" data-jump="conventions">Events</button>
-    <button type="button" data-jump="card-shows">Card shows</button>
-    <button type="button" data-jump="where-to-buy">Shops</button>
+  <nav class="ch-nav" id="nav" aria-label="Pages">
+    <a href="#/" data-page="home">Home <span class="deal-n" id="nav-deals" hidden title="Live deals"></span></a>
+    <a href="#/official" data-page="official">Official</a>
+    <a href="#/drawings" data-page="drawings">Drawings</a>
+    <a href="#/bigbox" data-page="bigbox">Big-box</a>
+    <a href="#/stores" data-page="stores">Game stores</a>
+    <a href="#/bandai" data-page="bandai">Bandai log</a>
+    <a href="#/events" data-page="events">Events</a>
+    <a href="#/shows" data-page="shows">Card shows</a>
+    <a href="#/shops" data-page="shops">Shops</a>
   </nav>
 
-  <section class="ch-deals ch-jump-target" id="deals" hidden data-source="news">
-    <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP</span></div>
-    <ul id="deals-list"></ul>
-  </section>
-  <button type="button" class="ch-top" id="to-top" aria-label="Back to top">↑</button>
-
-  <!-- NEWS -->
-  <section id="news">
-    <div class="ch-news-row">
-      <article class="ch-card acc-official" id="official-news">
-        <h2>Official drops <span class="ch-badge">MSRP · top priority</span></h2>
-        <p class="ch-why">Pokémon Center, Premium Bandai and official releases. <b>The only real MSRP</b>, and the hardest to get — drops are random, so watch the windows below.</p>
-        <div class="ch-windows">
-          <div class="ch-window" id="window-pc">
-            <div class="w-name">Pokémon Center</div>
-            <div class="w-when">11am–3pm ET · Mon–Thu</div>
-            <div class="w-note">Random, but X usually catches drops in this window.</div>
-            <span class="ch-live" data-window="pc">—</span>
-          </div>
-          <div class="ch-window" id="window-pb">
-            <div class="w-name">Premium Bandai</div>
-            <div class="w-when">9pm or 10pm ET</div>
-            <div class="w-note">Usual drop time when X doesn't say; otherwise fully random.</div>
-            <span class="ch-live" data-window="pb">—</span>
-          </div>
-        </div>
-        <div class="ch-coming ch-jump-target" id="coming-up">
-          <p class="ch-label">Coming up · official only</p>
-          <div class="ch-coming-scroll">
-            <table class="ch-table" id="coming-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">When</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
-            <div class="ch-empty" hidden>Nothing official dated ahead.</div>
-          </div>
-        </div>
-        <p class="ch-label ch-jump-target" id="official-list">Releases, events &amp; estimates · by month posted, last 6 months</p>
-        <div class="ch-months" id="official-months"></div>
-        <div class="ch-scroll">
-          <table class="ch-table" id="official-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="type">Type</th><th data-field="account" class="ch-hide-narrow">Source</th><th data-field="verified">Checked</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
-          <div class="ch-empty" hidden>Nothing official posted this month for this game.</div>
-        </div>
-      </article>
-
-      <div class="ch-news-side">
-        <article class="ch-card acc-draw ch-jump-target" id="drawings">
-          <h2>Drawings &amp; raffles <span class="ch-badge">Enter to win a chance to buy</span></h2>
-          <p class="ch-why">Not drops — you enter, and winners get to buy at retail. Who's running them right now:</p>
-          <div class="ch-who">
-            <span class="ch-who-item on"><i class="ch-dot"></i>Premium Bandai <em>active</em></span>
-            <span class="ch-who-item on"><i class="ch-dot"></i>Walmart <em>active · random</em></span>
-            <span class="ch-who-item on"><i class="ch-dot"></i>Best Buy <em>active · invite draws</em></span>
-            <span class="ch-who-item on"><i class="ch-dot"></i>Amazon <em>active · invite requests</em></span>
-            <span class="ch-who-item soon"><i class="ch-dot"></i>Pokémon Center <em>reportedly planning · not confirmed</em></span>
-          </div>
-          <div class="ch-scroll ch-draw-scroll">
-          <table class="ch-table" id="drawing-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">Closes / draws</th><th data-field="where">Store</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
-          <div class="ch-empty" hidden>No drawings logged for this game.</div>
-          </div>
-        </article>
-
-        <article class="ch-card acc-official ch-jump-target" id="bandai-log">
-          <h2>Premium Bandai drop log <span class="c">from OP TCG Market Discord</span></h2>
-          <p class="ch-why">Every card drop since July from the server's Bandai monitor, checked once a day. Nearly all hit at <b>9pm or 10pm ET</b>.</p>
-          <div class="ch-fill-scroll">
-            <table class="ch-table" id="bandai-table" data-source="bandai_drops" data-row-key="item,dropped_at"><thead><tr><th data-field="dropped_at">When</th><th data-field="item">Item</th><th data-field="price">Price</th><th data-field="status" class="ch-hide-narrow">How it went</th></tr></thead><tbody></tbody></table>
-            <div class="ch-empty" hidden>No drops logged yet — waiting on the first Discord read.</div>
-          </div>
-        </article>
+  <div class="ch-page" data-page="home" hidden>
+    <section class="ch-deals" id="deals" hidden data-source="news">
+      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP</span></div>
+      <ul id="deals-list"></ul>
+    </section>
+    <article class="ch-card acc-official" id="coming-up">
+      <h2>Coming up <span class="ch-badge">Official only</span></h2>
+      <p class="ch-why">Official releases and events with a date ahead, soonest first. Full history is on the <a href="#/official">Official</a> page.</p>
+      <div class="ch-coming-scroll">
+        <table class="ch-table" id="coming-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">When</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>Nothing official dated ahead.</div>
       </div>
-    </div>
+    </article>
+    <section aria-label="All pages">
+      <h2 class="ch-section-title">Pages</h2>
+      <div class="ch-go-grid">
+        <a class="ch-go acc-official" href="#/official"><span class="g-top">Official drops <span class="g-n" data-count="official"></span></span><span class="g-sub">Pokémon Center, Premium Bandai and official releases. The real MSRP.</span></a>
+        <a class="ch-go acc-draw-go" href="#/drawings"><span class="g-top">Drawings &amp; raffles <span class="g-n" data-count="drawings"></span></span><span class="g-sub">Enter to win a chance to buy at retail.</span></a>
+        <a class="ch-go acc-bigbox" href="#/bigbox"><span class="g-top">Big-box retail <span class="g-n" data-count="bigbox"></span></span><span class="g-sub">Target, Walmart, Best Buy and Amazon restocks and drop nights.</span></a>
+        <a class="ch-go acc-lgs" href="#/stores"><span class="g-top">Game stores <span class="g-n" data-count="stores"></span></span><span class="g-sub">Preorders, premium items, resale and imports.</span></a>
+        <a class="ch-go acc-official" href="#/bandai"><span class="g-top">Bandai drop log <span class="g-n" data-count="bandai"></span></span><span class="g-sub">Every Premium Bandai card drop since July, with times.</span></a>
+        <a class="ch-go" href="#/events" style="--acc: var(--ev-bandai)"><span class="g-top">Conventions &amp; events <span class="g-n" data-count="events"></span></span><span class="g-sub">Card fests, conventions and championships, next up first.</span></a>
+        <a class="ch-go" href="#/shows" style="--acc: var(--rg-queens)"><span class="g-top">Card shows <span class="g-n">by state</span></span><span class="g-sub">Local card shows from TCDB. Pick a state and month.</span></a>
+        <a class="ch-go acc-market" href="#/shops"><span class="g-top">Shops <span class="g-n" data-count="shops"></span></span><span class="g-sub">Every place to buy, from MSRP down to resale, plus X searches.</span></a>
+      </div>
+    </section>
+  </div>
 
-    <article class="ch-card acc-bigbox ch-jump-target" id="bigbox-news" style="margin-top: var(--cds-gap-md);">
+  <div class="ch-page" data-page="official" hidden>
+    <article class="ch-card acc-official" id="official-news">
+      <h2>Official drops <span class="ch-badge">MSRP · top priority</span></h2>
+      <p class="ch-why">Pokémon Center, Premium Bandai and official releases. <b>The only real MSRP</b>, and the hardest to get — drops are random, so watch the windows below.</p>
+      <div class="ch-windows">
+        <div class="ch-window" id="window-pc">
+          <div class="w-name">Pokémon Center</div>
+          <div class="w-when">11am–3pm ET · Mon–Thu</div>
+          <div class="w-note">Random, but X usually catches drops in this window.</div>
+          <span class="ch-live" data-window="pc">—</span>
+        </div>
+        <div class="ch-window" id="window-pb">
+          <div class="w-name">Premium Bandai</div>
+          <div class="w-when">9pm or 10pm ET</div>
+          <div class="w-note">Usual drop time when X doesn't say; otherwise fully random.</div>
+          <span class="ch-live" data-window="pb">—</span>
+        </div>
+      </div>
+      <p class="ch-label" id="official-list">Releases, events &amp; estimates · by month posted, last 6 months</p>
+      <div class="ch-months" id="official-months"></div>
+      <div class="ch-scroll">
+        <table class="ch-table" id="official-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="type">Type</th><th data-field="account" class="ch-hide-narrow">Source</th><th data-field="verified">Checked</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>Nothing official posted this month for this game.</div>
+      </div>
+    </article>
+  </div>
+
+  <div class="ch-page" data-page="drawings" hidden>
+    <article class="ch-card acc-draw" id="drawings">
+      <h2>Drawings &amp; raffles <span class="ch-badge">Enter to win a chance to buy</span></h2>
+      <p class="ch-why">Not drops — you enter, and winners get to buy at retail. Who's running them right now:</p>
+      <div class="ch-who">
+        <span class="ch-who-item on"><i class="ch-dot"></i>Premium Bandai <em>active</em></span>
+        <span class="ch-who-item on"><i class="ch-dot"></i>Walmart <em>active · random</em></span>
+        <span class="ch-who-item on"><i class="ch-dot"></i>Best Buy <em>active · invite draws</em></span>
+        <span class="ch-who-item on"><i class="ch-dot"></i>Amazon <em>active · invite requests</em></span>
+        <span class="ch-who-item soon"><i class="ch-dot"></i>Pokémon Center <em>reportedly planning · not confirmed</em></span>
+      </div>
+      <div class="ch-scroll ch-draw-scroll">
+      <table class="ch-table" id="drawing-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="happens">Closes / draws</th><th data-field="where">Store</th><th data-field="game">TCG</th><th data-field="headline">What</th><th data-field="verified">Checked</th></tr></thead><tbody></tbody></table>
+      <div class="ch-empty" hidden>No drawings logged for this game.</div>
+      </div>
+    </article>
+  </div>
+
+  <div class="ch-page" data-page="bigbox" hidden>
+    <article class="ch-card acc-bigbox" id="bigbox-news">
       <h2>Big-box retail <span class="ch-badge">Retail price</span></h2>
-      <p class="ch-why">Target, Walmart, Best Buy, Amazon and friends. Restocks, drops and store promos from X — drawings live in their own section above.</p>
+      <p class="ch-why">Target, Walmart, Best Buy, Amazon and friends. Restocks, drops and store promos from X — drawings have their own <a href="#/drawings">Drawings</a> page.</p>
       <div class="ch-bigbox-grid"><div class="ch-windows" style="margin-top:0">
         <div class="ch-window" id="window-walmart">
           <div class="w-name">Walmart</div>
           <div class="w-when">Wed · 9pm ET</div>
-          <div class="w-note">Regular drop night. Its drawings run at random — see Drawings above.</div>
+          <div class="w-note">Regular drop night. Its drawings run at random — see the Drawings page.</div>
           <span class="ch-live" data-window="wm">—</span>
         </div>
         <div class="ch-window" id="window-target">
@@ -532,165 +575,184 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       </div>
       </div>
     </article>
+  </div>
 
-    <details open class="ch-card ch-other ch-jump-target" id="other-news" style="margin-top: var(--cds-gap-md); --acc: var(--color-border-line);">
-      <summary>Game stores &amp; other drops <span class="ch-muted" style="font-weight:400; font-size: var(--cds-font-size-caption);">preorders, premium items, resale and imports · click to collapse</span></summary>
+  <div class="ch-page" data-page="stores" hidden>
+    <article class="ch-card acc-lgs" id="other-news">
+      <h2>Game stores &amp; other drops <span class="ch-badge">Preorders · small markup</span></h2>
+      <p class="ch-why">Game-store preorders and finds, premium items, resale and imports, newest first.</p>
       <div class="ch-xscroll">
       <table class="ch-table" id="other-table" data-source="news" data-row-key="headline"><thead><tr><th data-field="headline">What</th><th data-field="game">Game</th><th data-field="where">Where</th><th data-field="at">Posted</th></tr></thead><tbody></tbody></table>
       <div class="ch-empty" hidden>Nothing else for this game.</div>
       </div>
-    </details>
-  </section>
+    </article>
+  </div>
 
-  <!-- CONVENTIONS -->
-  <section class="ch-jump-target" id="conventions">
-    <h2 class="ch-section-title">Conventions &amp; big events</h2>
-    <p class="ch-section-sub">Big conventions and championships — next up first. Every date is checked against 2–3 sources (hover the Checked badge). Ticket links go to the official page; nothing is bought for you.</p>
-    <div class="ch-legend" style="margin: 0 0 var(--cds-gap-md);">
-      <span style="--acc: var(--ev-bandai)"><i class="ch-dot"></i>Bandai Card Fest</span>
-      <span style="--acc: var(--ev-cac)"><i class="ch-dot"></i>Collect-A-Con</span>
-      <span style="--acc: var(--ev-pax)"><i class="ch-dot"></i>PAX</span>
-      <span style="--acc: var(--ev-anime)"><i class="ch-dot"></i>Anime NYC</span>
-      <span style="--acc: var(--ev-comic)"><i class="ch-dot"></i>Comic Con</span>
-      <span style="--acc: var(--ev-riot)"><i class="ch-dot"></i>Riot / Riftbound</span>
-      <span style="--acc: var(--ev-magic)"><i class="ch-dot"></i>MagicCon</span>
-      <span style="--acc: var(--ev-poke)"><i class="ch-dot"></i>Pokémon Championships</span>
-      <span style="--acc: var(--ev-tcgcon)"><i class="ch-dot"></i>TCG convention</span>
-    </div>
-    <div class="ch-card" style="--acc: var(--color-border-line);">
-      <div class="ch-scroll" style="max-height: 30rem;">
-        <table class="ch-table ch-events" id="events-table" data-source="events" data-row-key="name"><thead><tr><th data-field="start">When</th><th data-field="name">Event</th><th data-field="series" class="ch-hide-narrow">Series</th><th data-field="city">Where</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="games" class="ch-hide-narrow">TCGs</th><th data-field="tickets">Tickets</th><th data-field="verified">Checked</th><th data-field="highlights">Promos &amp; drops</th><th data-field="notes" class="ch-hide-narrow">Notes</th></tr></thead><tbody></tbody></table>
-        <div class="ch-empty" hidden>No events for this game.</div>
+  <div class="ch-page" data-page="bandai" hidden>
+    <article class="ch-card acc-official" id="bandai-log">
+      <h2>Premium Bandai drop log <span class="c">from OP TCG Market Discord</span></h2>
+      <p class="ch-why">Every card drop since July from the server's Bandai monitor, checked once a day. Nearly all hit at <b>9pm or 10pm ET</b>.</p>
+      <div class="ch-fill-scroll">
+        <table class="ch-table" id="bandai-table" data-source="bandai_drops" data-row-key="item,dropped_at"><thead><tr><th data-field="dropped_at">When</th><th data-field="item">Item</th><th data-field="price">Price</th><th data-field="status" class="ch-hide-narrow">How it went</th></tr></thead><tbody></tbody></table>
+        <div class="ch-empty" hidden>No drops logged yet — waiting on the first Discord read.</div>
       </div>
-    </div>
-  </section>
+    </article>
+  </div>
 
-  <!-- CARD SHOWS -->
-  <section class="ch-jump-target" id="card-shows">
-    <h2 class="ch-section-title">Card shows</h2>
-    <p class="ch-section-sub">Local card shows from TCDB, the community card-show calendar. Pick a state, then flip through months or search a town or show. Dates and hours are the organizers' own listings, so check the show page before you go. <span id="shows-count"></span></p>
-    <div class="ch-shows-bar">
-      <label class="ch-field"><span>State</span><select id="shows-state" aria-label="State"></select></label>
-      <label class="ch-field ch-field-grow"><span>Search</span><input id="shows-q" type="search" placeholder="Town, venue or show name" autocomplete="off" enterkeyhint="search"></label>
-      <div class="ch-seg" id="shows-focus" role="group" aria-label="Show type">
-        <button type="button" data-cf="tcg" aria-pressed="true">Hide sports-only</button><button type="button" data-cf="all" aria-pressed="false">All shows</button>
+  <div class="ch-page" data-page="events" hidden>
+    <section id="conventions">
+      <h2 class="ch-section-title">Conventions &amp; big events</h2>
+      <p class="ch-section-sub">Big conventions and championships — next up first. Every date is checked against 2–3 sources (hover the Checked badge). Ticket links go to the official page; nothing is bought for you.</p>
+      <div class="ch-legend" style="margin: 0 0 var(--cds-gap-md);">
+        <span style="--acc: var(--ev-bandai)"><i class="ch-dot"></i>Bandai Card Fest</span>
+        <span style="--acc: var(--ev-cac)"><i class="ch-dot"></i>Collect-A-Con</span>
+        <span style="--acc: var(--ev-pax)"><i class="ch-dot"></i>PAX</span>
+        <span style="--acc: var(--ev-anime)"><i class="ch-dot"></i>Anime NYC</span>
+        <span style="--acc: var(--ev-comic)"><i class="ch-dot"></i>Comic Con</span>
+        <span style="--acc: var(--ev-riot)"><i class="ch-dot"></i>Riot / Riftbound</span>
+        <span style="--acc: var(--ev-magic)"><i class="ch-dot"></i>MagicCon</span>
+        <span style="--acc: var(--ev-poke)"><i class="ch-dot"></i>Pokémon Championships</span>
+        <span style="--acc: var(--ev-tcgcon)"><i class="ch-dot"></i>TCG convention</span>
       </div>
-    </div>
-    <div class="ch-legend" id="shows-legend" style="margin: 0 0 var(--cds-gap-sm);">
-      <span style="--acc: var(--rg-queens)"><i class="ch-dot"></i>Queens</span>
-      <span style="--acc: var(--rg-brooklyn)"><i class="ch-dot"></i>Brooklyn</span>
-      <span style="--acc: var(--rg-manhattan)"><i class="ch-dot"></i>Manhattan</span>
-      <span style="--acc: var(--rg-si)"><i class="ch-dot"></i>Staten Island</span>
-      <span style="--acc: var(--rg-li)"><i class="ch-dot"></i>Long Island</span>
-      <span style="--acc: var(--rg-north)"><i class="ch-dot"></i>Westchester / Rockland</span>
-      <span style="--acc: #94a3b8"><i class="ch-dot"></i>Upstate NY</span>
-    </div>
-    <div class="ch-months" id="shows-months"></div>
-    <div class="ch-card" style="--acc: var(--color-border-line);">
-      <div class="ch-scroll" style="max-height: 26rem;">
-        <table class="ch-table ch-shows" id="shows-table" data-source="card_shows" data-row-key="name,date"><thead><tr><th data-field="date">When</th><th data-field="name">Show</th><th data-field="region">Area</th><th data-field="city" class="ch-hide-narrow">Town</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="hours">Hours</th><th data-field="focus" class="ch-hide-narrow">Type</th></tr></thead><tbody></tbody></table>
-        <div class="ch-empty" hidden>No shows match. Try All shows, another month or a shorter search.</div>
-        <div class="ch-empty ch-shows-wait">Card shows load as you scroll here…</div>
+      <div class="ch-card" style="--acc: var(--color-border-line);">
+        <div class="ch-scroll" style="max-height: 30rem;">
+          <table class="ch-table ch-events" id="events-table" data-source="events" data-row-key="name"><thead><tr><th data-field="start">When</th><th data-field="name">Event</th><th data-field="series" class="ch-hide-narrow">Series</th><th data-field="city">Where</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="games" class="ch-hide-narrow">TCGs</th><th data-field="tickets">Tickets</th><th data-field="verified">Checked</th><th data-field="highlights">Promos &amp; drops</th><th data-field="notes" class="ch-hide-narrow">Notes</th></tr></thead><tbody></tbody></table>
+          <div class="ch-empty" hidden>No events for this game.</div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <!-- WHERE TO BUY -->
-  <section class="ch-jump-target" id="where-to-buy">
-    <h2 class="ch-section-title">Marketplace</h2>
-    <p class="ch-section-sub">Every place to buy, from MSRP down to resale. Tap a game to filter the whole page, or a channel to show just that one. Each card opens the store.</p>
+  <div class="ch-page" data-page="shows" hidden>
+    <section id="card-shows">
+      <h2 class="ch-section-title">Card shows</h2>
+      <p class="ch-section-sub">Local card shows from TCDB, the community card-show calendar. Pick a state, then flip through months or search a town or show. Dates and hours are the organizers' own listings, so check the show page before you go. <span id="shows-count"></span></p>
+      <div class="ch-shows-bar">
+        <label class="ch-field"><span>State</span><select id="shows-state" aria-label="State"></select></label>
+        <label class="ch-field ch-field-grow"><span>Search</span><input id="shows-q" type="search" placeholder="Town, venue or show name" autocomplete="off" enterkeyhint="search"></label>
+        <div class="ch-seg" id="shows-focus" role="group" aria-label="Show type">
+          <button type="button" data-cf="tcg" aria-pressed="true">Hide sports-only</button><button type="button" data-cf="all" aria-pressed="false">All shows</button>
+        </div>
+      </div>
+      <div class="ch-legend" id="shows-legend" style="margin: 0 0 var(--cds-gap-sm);">
+        <span style="--acc: var(--rg-queens)"><i class="ch-dot"></i>Queens</span>
+        <span style="--acc: var(--rg-brooklyn)"><i class="ch-dot"></i>Brooklyn</span>
+        <span style="--acc: var(--rg-manhattan)"><i class="ch-dot"></i>Manhattan</span>
+        <span style="--acc: var(--rg-si)"><i class="ch-dot"></i>Staten Island</span>
+        <span style="--acc: var(--rg-li)"><i class="ch-dot"></i>Long Island</span>
+        <span style="--acc: var(--rg-north)"><i class="ch-dot"></i>Westchester / Rockland</span>
+        <span style="--acc: #94a3b8"><i class="ch-dot"></i>Upstate NY</span>
+      </div>
+      <div class="ch-months" id="shows-months"></div>
+      <div class="ch-card" style="--acc: var(--color-border-line);">
+        <div class="ch-scroll" style="max-height: 26rem;">
+          <table class="ch-table ch-shows" id="shows-table" data-source="card_shows" data-row-key="name,date"><thead><tr><th data-field="date">When</th><th data-field="name">Show</th><th data-field="region">Area</th><th data-field="city" class="ch-hide-narrow">Town</th><th data-field="venue" class="ch-hide-narrow">Venue</th><th data-field="hours">Hours</th><th data-field="focus" class="ch-hide-narrow">Type</th></tr></thead><tbody></tbody></table>
+          <div class="ch-empty" hidden>No shows match. Try All shows, another month or a shorter search.</div>
+          <div class="ch-empty ch-shows-wait">Loading card shows…</div>
+        </div>
+      </div>
+    </section>
+  </div>
 
-    <div class="ch-kpis" id="coverage">
-      <button class="ch-tile" data-game="one_piece"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=One Piece">—</span><span class="t">One Piece</span></button>
-      <button class="ch-tile" data-game="pokemon"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Pokémon">—</span><span class="t">Pokémon</span></button>
-      <button class="ch-tile" data-game="mtg"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=MTG">—</span><span class="t">MTG</span></button>
-      <button class="ch-tile" data-game="bandai_other"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Other Bandai">—</span><span class="t">Other Bandai</span></button>
-      <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
-      <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
-      <button class="ch-tile" data-game="riftbound"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Riftbound">—</span><span class="t">Riftbound</span></button>
-      <button class="ch-tile" data-game="cyberpunk"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Cyberpunk">—</span><span class="t">Cyberpunk</span></button>
-    </div>
+  <div class="ch-page" data-page="shops" hidden>
+    <section id="where-to-buy">
+      <h2 class="ch-section-title">Marketplace</h2>
+      <p class="ch-section-sub">Every place to buy, from MSRP down to resale. Tap a game to filter every page (same as the game picker at the top), or a channel to show just that one. Each card opens the store.</p>
 
-    <div class="ch-chips" id="filters">
-      <span class="ch-label" style="margin:0 var(--cds-gap-xs) 0 0">Channel</span>
-      <button class="ch-chip" data-channel="all">All</button>
-      <button class="ch-chip acc-official" data-channel="Official stores"><i class="ch-dot"></i>Official</button>
-      <button class="ch-chip acc-bigbox" data-channel="Big-box retail"><i class="ch-dot"></i>Big-box</button>
-      <button class="ch-chip acc-lgs" data-channel="Local game stores"><i class="ch-dot"></i>Game stores</button>
-      <button class="ch-chip acc-market" data-channel="Marketplaces"><i class="ch-dot"></i>Resale</button>
-      <button class="ch-chip acc-import" data-channel="Japan imports"><i class="ch-dot"></i>Japan imports</button>
-      <button class="ch-chip acc-x" data-channel="X"><i class="ch-dot"></i>X searches</button>
-    </div>
+      <div class="ch-kpis" id="coverage">
+        <button class="ch-tile" data-game="one_piece"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=One Piece">—</span><span class="t">One Piece</span></button>
+        <button class="ch-tile" data-game="pokemon"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Pokémon">—</span><span class="t">Pokémon</span></button>
+        <button class="ch-tile" data-game="mtg"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=MTG">—</span><span class="t">MTG</span></button>
+        <button class="ch-tile" data-game="bandai_other"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Other Bandai">—</span><span class="t">Other Bandai</span></button>
+        <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
+        <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
+        <button class="ch-tile" data-game="riftbound"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Riftbound">—</span><span class="t">Riftbound</span></button>
+        <button class="ch-tile" data-game="cyberpunk"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Cyberpunk">—</span><span class="t">Cyberpunk</span></button>
+      </div>
 
-    <div class="ch-bands" id="channels">
-      <article class="ch-band acc-official" id="ch-official" data-section="Official stores">
-        <header class="ch-band-head">
-          <span class="ch-band-num">1</span>
-          <div>
-            <h3>Official stores <span class="ch-badge">MSRP · top priority</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Official stores">—</span></h3>
-            <p class="ch-why"><b>Where MSRP actually happens</b>, and the hardest to get. Drops are random, so follow Official drops at the top.</p>
-          </div>
-        </header>
-        <div class="ch-stores" data-source="sources" data-channel="Official stores"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-      <article class="ch-band acc-bigbox" id="ch-bigbox" data-section="Big-box retail">
-        <header class="ch-band-head">
-          <span class="ch-band-num">2</span>
-          <div>
-            <h3>Big-box retail <span class="ch-badge">Retail price · watch X</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Big-box retail">—</span></h3>
-            <p class="ch-why"><b>Retail pricing if you catch it.</b> Restocks, drawings and invites show up on X first. See Big-box news above.</p>
-          </div>
-        </header>
-        <div class="ch-stores" data-source="sources" data-channel="Big-box retail"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-      <article class="ch-band acc-lgs" id="ch-lgs" data-section="Local game stores">
-        <header class="ch-band-head">
-          <span class="ch-band-num">3</span>
-          <div>
-            <h3>Game stores <span class="ch-badge">Preorders · small markup</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Local game stores">—</span></h3>
-            <p class="ch-why"><b>Best for preorders</b>, especially less-hyped sets like Weiss Schwarz. For Pokémon and One Piece, mostly marked-up exclusives that are often still under market.</p>
-          </div>
-        </header>
-        <div class="ch-stores" data-source="sources" data-channel="Local game stores"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-      <article class="ch-band acc-market" id="ch-market" data-section="Marketplaces">
-        <header class="ch-band-head">
-          <span class="ch-band-num">4</span>
-          <div>
-            <h3>Resale marketplaces <span class="ch-badge">Above MSRP</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Marketplaces">—</span></h3>
-            <p class="ch-why"><b>Resale only, no MSRP.</b> Good for singles, slabs and price checks, and the occasional deal.</p>
-          </div>
-        </header>
-        <div class="ch-stores" data-source="sources" data-channel="Marketplaces"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-      <article class="ch-band acc-import dim" id="ch-import" data-section="Japan imports">
-        <header class="ch-band-head">
-          <span class="ch-band-num">5</span>
-          <div>
-            <h3>Japan imports <span class="ch-badge">Low priority · stay aware</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Japan imports">—</span></h3>
-            <p class="ch-why">Japan-only lines like Divine Cross. Good to know about, not a focus.</p>
-          </div>
-        </header>
-        <div class="ch-stores" data-source="sources" data-channel="Japan imports"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-      <article class="ch-band acc-x dim" id="x-searches" data-section="X">
-        <header class="ch-band-head">
-          <span class="ch-band-num">6</span>
-          <div>
-            <h3>X live searches</h3>
-            <p class="ch-why">One-tap searches for restocks, preorders and drops. They open in your own X account.</p>
-          </div>
-        </header>
-        <div class="ch-stores ch-xs" id="x-list" data-source="x_searches"></div>
-        <div class="ch-empty" hidden>Nothing here for this game.</div>
-      </article>
-    </div>
-  </section>
+      <div class="ch-chips" id="filters">
+        <span class="ch-label" style="margin:0 var(--cds-gap-xs) 0 0">Channel</span>
+        <button class="ch-chip" data-channel="all">All</button>
+        <button class="ch-chip acc-official" data-channel="Official stores"><i class="ch-dot"></i>Official</button>
+        <button class="ch-chip acc-bigbox" data-channel="Big-box retail"><i class="ch-dot"></i>Big-box</button>
+        <button class="ch-chip acc-lgs" data-channel="Local game stores"><i class="ch-dot"></i>Game stores</button>
+        <button class="ch-chip acc-market" data-channel="Marketplaces"><i class="ch-dot"></i>Resale</button>
+        <button class="ch-chip acc-import" data-channel="Japan imports"><i class="ch-dot"></i>Japan imports</button>
+        <button class="ch-chip acc-x" data-channel="X"><i class="ch-dot"></i>X searches</button>
+      </div>
+
+      <div class="ch-bands" id="channels">
+        <article class="ch-band acc-official" id="ch-official" data-section="Official stores">
+          <header class="ch-band-head">
+            <span class="ch-band-num">1</span>
+            <div>
+              <h3>Official stores <span class="ch-badge">MSRP · top priority</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Official stores">—</span></h3>
+              <p class="ch-why"><b>Where MSRP actually happens</b>, and the hardest to get. Drops are random, so follow the <a href="#/official">Official</a> page.</p>
+            </div>
+          </header>
+          <div class="ch-stores" data-source="sources" data-channel="Official stores"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+        <article class="ch-band acc-bigbox" id="ch-bigbox" data-section="Big-box retail">
+          <header class="ch-band-head">
+            <span class="ch-band-num">2</span>
+            <div>
+              <h3>Big-box retail <span class="ch-badge">Retail price · watch X</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Big-box retail">—</span></h3>
+              <p class="ch-why"><b>Retail pricing if you catch it.</b> Restocks, drawings and invites show up on X first. See the <a href="#/bigbox">Big-box</a> page.</p>
+            </div>
+          </header>
+          <div class="ch-stores" data-source="sources" data-channel="Big-box retail"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+        <article class="ch-band acc-lgs" id="ch-lgs" data-section="Local game stores">
+          <header class="ch-band-head">
+            <span class="ch-band-num">3</span>
+            <div>
+              <h3>Game stores <span class="ch-badge">Preorders · small markup</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Local game stores">—</span></h3>
+              <p class="ch-why"><b>Best for preorders</b>, especially less-hyped sets like Weiss Schwarz. For Pokémon and One Piece, mostly marked-up exclusives that are often still under market.</p>
+            </div>
+          </header>
+          <div class="ch-stores" data-source="sources" data-channel="Local game stores"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+        <article class="ch-band acc-market" id="ch-market" data-section="Marketplaces">
+          <header class="ch-band-head">
+            <span class="ch-band-num">4</span>
+            <div>
+              <h3>Resale marketplaces <span class="ch-badge">Above MSRP</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Marketplaces">—</span></h3>
+              <p class="ch-why"><b>Resale only, no MSRP.</b> Good for singles, slabs and price checks, and the occasional deal.</p>
+            </div>
+          </header>
+          <div class="ch-stores" data-source="sources" data-channel="Marketplaces"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+        <article class="ch-band acc-import dim" id="ch-import" data-section="Japan imports">
+          <header class="ch-band-head">
+            <span class="ch-band-num">5</span>
+            <div>
+              <h3>Japan imports <span class="ch-badge">Low priority · stay aware</span> <span class="c" data-source="by_channel" data-field="sources" data-where="channel=Japan imports">—</span></h3>
+              <p class="ch-why">Japan-only lines like Divine Cross. Good to know about, not a focus.</p>
+            </div>
+          </header>
+          <div class="ch-stores" data-source="sources" data-channel="Japan imports"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+        <article class="ch-band acc-x dim" id="x-searches" data-section="X">
+          <header class="ch-band-head">
+            <span class="ch-band-num">6</span>
+            <div>
+              <h3>X live searches</h3>
+              <p class="ch-why">One-tap searches for restocks, preorders and drops. They open in your own X account.</p>
+            </div>
+          </header>
+          <div class="ch-stores ch-xs" id="x-list" data-source="x_searches"></div>
+          <div class="ch-empty" hidden>Nothing here for this game.</div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <button type="button" class="ch-top" id="to-top" aria-label="Back to top">↑</button>
 </div>
 
 <script>
@@ -936,26 +998,46 @@ function drawDeals(rows) {
     return li;
   }));
   sec.hidden = deals.length === 0;
-  const jb = root.querySelector('.ch-jump [data-jump="deals"]'); if (jb) jb.hidden = deals.length === 0;
+  const nd = root.querySelector('#nav-deals'); if (nd) { nd.hidden = deals.length === 0; nd.textContent = '🔥 ' + deals.length; }
 }
-// Phone jump bar: tap to scroll; highlights the section in view.
+// Pages: the hash picks one page (#/drawings). Old section links (#drawings) still land on the right page.
+const PAGES = { home: '', official: 'Official drops', drawings: 'Drawings', bigbox: 'Big-box retail', stores: 'Game stores', bandai: 'Bandai drop log', events: 'Conventions & events', shows: 'Card shows', shops: 'Shops' };
+const OLD_IDS = { overview: 'home', deals: 'home', 'coming-up': 'home', news: 'official', 'official-news': 'official', 'official-list': 'official', drawings: 'drawings', 'bigbox-news': 'bigbox', 'other-news': 'stores', 'bandai-log': 'bandai', conventions: 'events', 'card-shows': 'shows', 'where-to-buy': 'shops', coverage: 'shops', channels: 'shops', 'x-searches': 'shops' };
+const BASE_TITLE = document.title;
+let curPage = null;
+function route() {
+  const h = decodeURIComponent(location.hash.replace(/^#\/?/, '')).toLowerCase();
+  let pg = h in PAGES ? h : (OLD_IDS[h] || 'home');
+  const want = pg === 'home' ? '' : '#/' + pg;
+  if (location.hash !== want && !(pg === 'home' && location.hash === '#/')) history.replaceState(null, '', location.pathname + location.search + want);
+  const changed = pg !== curPage; curPage = pg;
+  root.querySelectorAll('.ch-page').forEach((p) => { p.hidden = p.dataset.page !== pg; });
+  root.querySelectorAll('[data-home]').forEach((n) => { n.hidden = pg !== 'home'; });
+  const nav = root.querySelector('#nav');
+  nav.querySelectorAll('a[data-page]').forEach((a) => { if (a.dataset.page === pg) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  // Keep the active tab in view inside the nav strip without scrolling the page itself.
+  const act = nav.querySelector('a[aria-current]');
+  if (act) nav.scrollLeft = Math.max(0, act.offsetLeft - (nav.clientWidth - act.offsetWidth) / 2);
+  document.title = PAGES[pg] ? PAGES[pg] + ' · Chasing Grails' : BASE_TITLE;
+  if (changed) window.scrollTo(0, 0);
+  if (pg === 'shows') watchShows();
+}
+window.addEventListener('hashchange', route);
+root.querySelector('#nav').addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-page]');
+  if (a && a.dataset.page === curPage) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+});
+// Game picker: same filter as the Shops tiles, applies on every page.
 (() => {
-  const bar = root.querySelector('#jump'); if (!bar) return;
-  bar.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-jump]'); if (!b) return;
-    const tgt = root.querySelector('#' + b.dataset.jump);
-    if (tgt) { if (tgt.tagName === 'DETAILS') tgt.open = true; tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  });
-  const btns = [...bar.querySelectorAll('button[data-jump]')];
-  const setActive = (id) => btns.forEach((b) => { const on = b.dataset.jump === id; b.setAttribute('aria-current', String(on)); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center' }); });
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((ents) => { ents.filter((x) => x.isIntersecting).forEach((x) => setActive(x.target.id)); }, { rootMargin: '-70px 0px -70% 0px' });
-    btns.forEach((b) => { const tgt = root.querySelector('#' + b.dataset.jump); if (tgt) io.observe(tgt); });
-  }
+  const pick = root.querySelector('#game-pick');
+  pick.addEventListener('change', () => dash.setParams({ game: pick.value }));
+})();
+// Back to top on long pages (phones)
+(() => {
   const top = root.querySelector('#to-top');
-  top.addEventListener('click', () => root.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  const onScroll = () => top.classList.toggle('show', root.getBoundingClientRect().top < -700);
-  window.addEventListener('scroll', onScroll, { passive: true }); document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+  top.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  const onScroll = () => top.classList.toggle('show', window.scrollY > 700);
+  window.addEventListener('scroll', onScroll, { passive: true });
   if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) { const h = root.querySelector('.ch-howto'); if (h) h.open = false; }
 })();
 const fmtWhen = (s) => { if (!s) return ''; const d = new Date(s); if (isNaN(d)) return s; return s.length <= 10 ? d3.utcFormat('%a %b %-d')(d) : d3.timeFormat('%a %b %-d, %-I %p')(d); };
@@ -998,32 +1080,13 @@ const fillTable = (table, rows, cols) => {
   table.hidden = rows.length === 0;
   const empty = table.parentElement.querySelector(':scope > .ch-empty');
   if (empty) empty.hidden = rows.length !== 0;
-  clampTable(table, rows.length);
 };
-// Phones: show 5 rows, then a "Show all" button (no scroll boxes inside the page).
-function clampTable(table, n) {
-  table.classList.add('clamp');
-  let btn = table.parentElement.querySelector(':scope > .ch-more[data-for="' + table.id + '"]');
-  if (!btn) {
-    btn = el('button', 'ch-more'); btn.type = 'button'; btn.dataset.for = table.id;
-    table.after(btn);
-    btn.addEventListener('click', () => { const open = table.classList.toggle('open'); btn.textContent = open ? 'Show less' : 'Show all ' + btn.dataset.n; if (!open) table.scrollIntoView({ block: 'nearest' }); });
-  }
-  btn.dataset.n = n;
-  btn.hidden = n <= 5;
-  btn.textContent = table.classList.contains('open') ? 'Show less' : 'Show all ' + n;
-}
-
 // ---- Card shows: lazy load, per-state index, local controls ----
 const ST_NAME = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, DC',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
 const CS = { state: 'NY', focus: 'tcg', month: null, q: '', idx: null, ref: null };
 function watchShows() {
-  if (window.__csWatching) return; window.__csWatching = true;
-  const sec = root.querySelector('#card-shows');
-  const go = () => { window.__csSeen = true; renderShows(); };
-  if (!('IntersectionObserver' in window)) { go(); return; }
-  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '800px 0px' });
-  io.observe(sec);
+  if (window.__csSeen || curPage !== 'shows') return;
+  window.__csSeen = true; renderShows();
 }
 function showsIndex(rows) {
   if (CS.ref === rows && CS.idx) return CS.idx;
@@ -1116,6 +1179,10 @@ dash.onData(() => {
   const gameOk = (label) => game === 'all' || label === GAME_LABEL[game];
 
   root.querySelectorAll('button[data-game]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.game === game)));
+  const pick = root.querySelector('#game-pick');
+  pick.value = GAME_LABEL[game] ? game : 'all'; pick.classList.toggle('on', pick.value !== 'all');
+  if (GAME_LABEL[game]) pick.style.setProperty('--c', TCG_COLOR[GAME_LABEL[game]]); else pick.style.removeProperty('--c');
+  const setCount = (k, n, word) => { const c = root.querySelector('[data-count="' + k + '"]'); if (c) c.textContent = n == null ? '' : d3.format(',')(n) + ' ' + word; };
   root.querySelectorAll('button.ch-chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.channel === channel)));
   drawWindows();
 
@@ -1161,6 +1228,10 @@ dash.onData(() => {
       b.addEventListener('click', () => dash.setParams({ om: k }));
       return b;
     }));
+    setCount('official', officialAll.length, 'in 6 mo');
+    setCount('bigbox', all.filter((r) => r.channel === 'Big-box').length, 'items');
+    setCount('stores', all.filter((r) => !['Official', 'Big-box', 'Drawing'].includes(r.channel)).length, 'items');
+    setCount('drawings', all.filter((r) => r.channel === 'Drawing').length, 'listed');
     fillTable(root.querySelector('#official-table'), officialAll.filter((r) => monthKey(new Date(r.at)) === selMonth), [
       headline, (r) => tcgCell(r.game), typ, (r) => el('td', 'ch-muted ch-hide-narrow', r.account), (r) => checkCell(r), posted,
     ]);
@@ -1207,6 +1278,7 @@ dash.onData(() => {
       const now = s && e && d3.timeDay.floor(s) <= today && today <= d3.timeDay.floor(e);
       return { r, s, e, past, now };
     }).sort((a, b) => (a.past - b.past) || (a.past ? b.s - a.s : a.s - b.s));
+    setCount('events', evs.filter((x) => !x.past).length, 'upcoming');
     const tbody = root.querySelector('#events-table tbody');
     tbody.replaceChildren();
     evs.forEach(({ r, s, e, past, now }) => {
@@ -1235,7 +1307,6 @@ dash.onData(() => {
     });
     const tbl = root.querySelector('#events-table');
     tbl.hidden = evs.length === 0;
-    clampTable(tbl, evs.length);
     tbl.parentElement.querySelector(':scope > .ch-empty').hidden = evs.length !== 0;
   }
 
@@ -1245,6 +1316,7 @@ dash.onData(() => {
   const bd = dash.data('bandai_drops');
   if (bd.status === 'ok') {
     const rows = bd.data.filter((r) => gameOk(r.game || 'One Piece')).slice().sort((a, b) => new Date(b.dropped_at) - new Date(a.dropped_at));
+    setCount('bandai', rows.length, 'drops');
     fillTable(root.querySelector('#bandai-table'), rows, [
       (r) => el('td', 'ch-when', fmtPosted(r.dropped_at)),
       (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.item, r.url, r.game || 'One Piece'); const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; },
@@ -1281,6 +1353,7 @@ dash.onData(() => {
   };
   const pillsOf = (games) => { const w = el('div', 'ch-pills'); (games || '').split(' · ').filter(Boolean).forEach((g) => w.appendChild(TCG_COLOR[g] ? tcgPill(g) : el('span', 'ch-muted', g))); return w; };
   const src = dash.data('sources');
+  if (src.status === 'ok') setCount('shops', src.data.filter((r) => game === 'all' || r[game] === 'Yes').length, 'places');
   root.querySelectorAll('.ch-stores[data-channel]').forEach((box) => {
     const band = box.closest('.ch-band');
     band.hidden = channel !== 'all' && channel !== band.dataset.section;
@@ -1307,6 +1380,7 @@ dash.onData(() => {
     xcard.querySelector(':scope > .ch-empty').hidden = xrows.length !== 0;
   }
 });
+route();
 </script>
 
 </div>
