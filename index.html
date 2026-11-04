@@ -480,7 +480,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 
   <div class="ch-page" data-page="home" hidden>
     <section class="ch-deals" id="deals" hidden data-source="news">
-      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP</span></div>
+      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
       <ul id="deals-list"></ul>
     </section>
     <article class="ch-card acc-official" id="coming-up">
@@ -973,12 +973,20 @@ const dealOf = (r) => {
 const dealPill = (d, short) => d.msrp != null
   ? (d.over <= 0 ? 'at or under MSRP' : '+$' + (short ? Math.round(d.over) : d.over.toFixed(2)) + ' over' + (short ? ' MSRP' : ''))
   : '$' + (short ? Math.round(d.room) : d.room.toFixed(2)) + ' under the $' + d.limit + ' limit';
+// A deal stays up only while it can still be bought: never once it's sold out or gone, and only while it's fresh.
+// Fresh = a timed sale or drawing that hasn't ended, or a listing posted or re-checked (checked_at) in the last 3 days.
+// A release date in happens doesn't keep an old preorder price up on its own.
+const DEAL_GONE = /sold out(?! fast)|listing removed|no longer available|preorders? closed|unavailable|\bended\b|expired/i;
+const dealSeen = (r) => Math.max(new Date(r.at).getTime() || 0, new Date(r.checked_at || 0).getTime() || 0);
 const dealLive = (r) => {
   const now = Date.now();
+  if (DEAL_GONE.test(r.headline || '') || r.available === 'No') return false;
   if (r.happens && r.happens.length > 10) return new Date(r.happens).getTime() >= now;
-  if (r.happens) return new Date(r.happens + 'T23:59:59').getTime() >= now;
-  return now - new Date(r.at).getTime() <= 3 * 864e5;
+  // Big-box restocks sell through fast, so they get 24 hours; everything else 3 days.
+  const days = r.channel === 'Big-box' && /^(Restock|Drop|In stock)$/.test(r.type || '') ? 1 : 3;
+  return now - dealSeen(r) <= days * 864e5;
 };
+const fmtSeen = (t) => new Date(t).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 const fmtET = (s) => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; };
 function drawDeals(rows) {
   const sec = root.querySelector('#deals'), list = root.querySelector('#deals-list');
@@ -993,6 +1001,7 @@ function drawDeals(rows) {
     meta.appendChild(el('span', 'deal-pill', dealPill(d, false)));
     if (r.where) meta.appendChild(el('span', null, r.where));
     if (r.happens && r.happens.length > 10) meta.appendChild(el('span', null, 'ends ' + fmtET(r.happens)));
+    meta.appendChild(el('span', null, (r.checked_at && new Date(r.checked_at) > new Date(r.at) ? 'checked ' : 'posted ') + fmtSeen(dealSeen(r))));
     li.appendChild(meta);
     const tg = kwTags(hits); if (tg) li.appendChild(tg);
     return li;
@@ -1201,7 +1210,7 @@ dash.onData(() => {
   if (news.status === 'ok') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
     drawDeals(all);
-    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealOf(r); if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
+    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
       const td = el('td');
