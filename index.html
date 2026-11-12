@@ -480,7 +480,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 
   <div class="ch-page" data-page="home" hidden>
     <section class="ch-deals" id="deals" hidden data-source="news">
-      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
+      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP (Pokémon boxes $190 or less) · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
       <ul id="deals-list"></ul>
     </section>
     <article class="ch-card acc-official" id="coming-up">
@@ -931,7 +931,7 @@ const fmtPosted = (s) => { const d = new Date(s); return isNaN(d) ? s : d3.timeF
 // older rows without it are typed from the first product name in the headline.
 // over: max dollars above official MSRP (needs msrp). cap: max price, no MSRP needed. pct: max share above MSRP (with a dollar ceiling).
 const DEAL_RULES = {
-  box:          { label: 'Booster box',     over: 90,   desc: 'within $90 of MSRP' },
+  box:          { label: 'Booster box',     over: 90,   gameCap: { 'Pokémon': 190 }, desc: 'within $90 of MSRP (Pokémon: $190 or less)' },
   upc:          { label: 'UPC',             cap: 170,   desc: '$170 or less' },
   etb:          { label: 'ETB',             cap: 80,    desc: '$80 or less' },
   bundle:       { label: 'Booster bundle',  cap: 35,    desc: '$35 or less' },
@@ -967,6 +967,8 @@ const dealOf = (r) => {
   else if (!hasMsrp) return null;
   else if (rule.over != null) limit = msrp + rule.over;
   else limit = msrp + Math.min(msrp * rule.pct, rule.pctMax);
+  // Some games get a hard ceiling on top of the MSRP rule (Pokémon booster boxes: $190 or less).
+  if (rule.gameCap && rule.gameCap[r.game] != null) limit = Math.min(limit, rule.gameCap[r.game]);
   if (price > limit + 1e-9) return null;
   return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label, limit, room: limit - price };
 };
