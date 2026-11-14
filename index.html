@@ -1424,10 +1424,11 @@ dash.onData(() => {
   }
 
   // News panels
-  const news = dash.data('news'), mkd = dash.data('market');
-  // Wait for market.json (a missing file just means no market prices) so an above-market deal never flashes up.
+  const news = dash.data('news'), mkd = dash.data('market'), kwd = dash.data('keywords');
+  // Wait for market.json and keywords.json (products are named from the keywords; a missing file just means
+  // no market prices) so an above-market deal never flashes up.
   if (mkd.status !== 'loading') MARKET = new Map(mkd.status === 'ok' ? mkd.data.filter((m) => m && m.key && Number(m.market_price) > 0).map((m) => [m.key, m]) : []);
-  if (news.status === 'ok' && mkd.status !== 'loading') {
+  if (news.status === 'ok' && mkd.status !== 'loading' && kwd.status !== 'loading') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
     drawDeals(all);
     drawTop(all);
