@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chasing Grails · TCG drops, drawings and restocks</title>
-<meta name="description" content="Where to get One Piece, Pokémon, MTG and Riftbound product at MSRP: official drops, drawings, big-box restocks, game-store finds, conventions and card shows. Updated twice a day.">
+<meta name="description" content="Where to get One Piece, Pokémon, Riftbound and other TCG product at MSRP: official drops, drawings, big-box restocks, game-store finds, conventions and card shows. Updated twice a day.">
 <link rel="canonical" href="https://chasing-grails.vercel.app/">
 <meta name="theme-color" content="#0f0f10">
 <meta name="color-scheme" content="dark light">
@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://chasing-grails.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Chasing Grails: official drops, drawings, restocks, conventions and card shows for One Piece, Pokémon, MTG, Riftbound and other Bandai games">
+<meta property="og:image:alt" content="Chasing Grails: official drops, drawings, restocks, conventions and card shows for One Piece, Pokémon, Riftbound and other Bandai games">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Chasing Grails">
 <meta name="twitter:description" content="Official drops, drawings, restocks, game-store finds, conventions and card shows for One Piece, Pokémon and more.">
@@ -65,6 +65,17 @@ a { color: inherit; }
 // Stand-in for the dashboard runtime: loads data/<id>.json on first read.
 (() => {
   const listeners = [], calcs = {}, store = {}, inflight = {};
+  // Games paused on the site for now. Their rows stay in the data files; the site just leaves them out.
+  // To bring one back, remove it from this list (and re-add its picker option / Shops tile).
+  const HIDE_GAMES = ['MTG'];
+  const stripGames = (s) => (s || '').split(' · ').filter((g) => g && !HIDE_GAMES.includes(g)).join(' · ');
+  const hideGames = (id, rows) => {
+    if (!HIDE_GAMES.length) return rows;
+    if (['news', 'keywords', 'x_searches'].includes(id)) return rows.filter((r) => !HIDE_GAMES.includes(r.game));
+    if (id === 'events') return rows.filter((r) => !r.games || stripGames(r.games)).map((r) => ({ ...r, games: stripGames(r.games) || r.games }));
+    if (id === 'sources') return rows.map((r) => { const o = { ...r, games: stripGames(r.games) }; if (HIDE_GAMES.includes('MTG')) o.mtg = ''; return o; });
+    return rows;
+  };
   const qs = new URLSearchParams(location.search);
   let params = Object.fromEntries(qs.entries());
   let queued = false;
@@ -75,7 +86,8 @@ a { color: inherit; }
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then((d) => { let rows = Array.isArray(d) ? d : (d.rows || d.data || d.results || []);
         if (d && d.cols) rows = rows.map((a) => Object.fromEntries(d.cols.map((c, i) => [c, a[i]])));
-        if (id === 'card_shows') rows.forEach((r) => { if (!r.url && r.id) r.url = 'https://www.tcdb.com/CardShows.cfm?MODE=VIEW&ID=' + r.id; }); store[id] = { status: 'ok', data: rows, columns: rows[0] ? Object.keys(rows[0]) : [], meta: [] }; })
+        if (id === 'card_shows') rows.forEach((r) => { if (!r.url && r.id) r.url = 'https://www.tcdb.com/CardShows.cfm?MODE=VIEW&ID=' + r.id; });
+        rows = hideGames(id, rows); store[id] = { status: 'ok', data: rows, columns: rows[0] ? Object.keys(rows[0]) : [], meta: [] }; })
       .catch((e) => { store[id] = { status: 'error', data: [], message: String(e), columns: [], meta: [] }; })
       .finally(() => { delete inflight[id]; notify(); });
   };
@@ -456,7 +468,6 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
           <option value="all">All games</option>
           <option value="one_piece">One Piece</option>
           <option value="pokemon">Pokémon</option>
-          <option value="mtg">MTG</option>
           <option value="bandai_other">Other Bandai</option>
           <option value="divine_cross">Divine Cross</option>
           <option value="weiss_schwarz">Weiss Schwarz</option>
@@ -645,7 +656,6 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
         <span style="--acc: var(--ev-anime)"><i class="ch-dot"></i>Anime NYC</span>
         <span style="--acc: var(--ev-comic)"><i class="ch-dot"></i>Comic Con</span>
         <span style="--acc: var(--ev-riot)"><i class="ch-dot"></i>Riot / Riftbound</span>
-        <span style="--acc: var(--ev-magic)"><i class="ch-dot"></i>MagicCon</span>
         <span style="--acc: var(--ev-poke)"><i class="ch-dot"></i>Pokémon Championships</span>
         <span style="--acc: var(--ev-tcgcon)"><i class="ch-dot"></i>TCG convention</span>
       </div>
@@ -697,7 +707,6 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <div class="ch-kpis" id="coverage">
         <button class="ch-tile" data-game="one_piece"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=One Piece">—</span><span class="t">One Piece</span></button>
         <button class="ch-tile" data-game="pokemon"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Pokémon">—</span><span class="t">Pokémon</span></button>
-        <button class="ch-tile" data-game="mtg"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=MTG">—</span><span class="t">MTG</span></button>
         <button class="ch-tile" data-game="bandai_other"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Other Bandai">—</span><span class="t">Other Bandai</span></button>
         <button class="ch-tile" data-game="divine_cross"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Divine Cross">—</span><span class="t">Divine Cross</span></button>
         <button class="ch-tile" data-game="weiss_schwarz"><span class="n dash-skeleton" data-source="by_game" data-field="sources" data-where="game=Weiss Schwarz">—</span><span class="t">Weiss Schwarz</span></button>
@@ -813,7 +822,7 @@ dash.calc('by_game', {
   title: 'Sources per game',
   description: 'Counts sources marked Yes for each game, fewest first.',
   fn: (sources) => [
-    ['one_piece', 'One Piece'], ['pokemon', 'Pokémon'], ['mtg', 'MTG'],
+    ['one_piece', 'One Piece'], ['pokemon', 'Pokémon'],
     ['bandai_other', 'Other Bandai'], ['divine_cross', 'Divine Cross'], ['weiss_schwarz', 'Weiss Schwarz'], ['riftbound', 'Riftbound'], ['cyberpunk', 'Cyberpunk'],
   ].map(([key, game]) => ({ game, sources: sources.filter((r) => r[key] === 'Yes').length }))
    .sort((a, b) => a.sources - b.sources),
@@ -831,7 +840,7 @@ dash.calc('news_by_channel', {
   fn: (news) => ['Official', 'Drawing', 'Big-box', 'Other'].map((channel) => ({ channel, items: news.filter((r) => r.channel === channel).length })),
 });
 
-const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', mtg: 'MTG', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz', riftbound: 'Riftbound', cyberpunk: 'Cyberpunk' };
+const GAME_LABEL = { one_piece: 'One Piece', pokemon: 'Pokémon', bandai_other: 'Other Bandai', divine_cross: 'Divine Cross', weiss_schwarz: 'Weiss Schwarz', riftbound: 'Riftbound', cyberpunk: 'Cyberpunk' };
 const TCG_COLOR = { 'One Piece': '#ef4444', 'Pokémon': '#facc15', 'MTG': '#f97316', 'Other Bandai': '#3b82f6', 'Divine Cross': '#a855f7', 'Weiss Schwarz': '#14b8a6', 'Riftbound': '#e879f9', 'Cyberpunk': '#22d3ee' };
 const STORE_COLOR = [
   ['Pokémon Center', '#ec4899'], ['Premium Bandai', '#06b6d4'], ['Secret Lair', '#8b5cf6'],
@@ -1330,7 +1339,7 @@ function drawShows() {
 
 dash.onData(() => {
   const p = dash.params();
-  const game = p.game || 'all';
+  const game = GAME_LABEL[p.game] ? p.game : 'all';
   const channel = p.channel || 'all';
   const gameOk = (label) => game === 'all' || label === GAME_LABEL[game];
 
