@@ -419,6 +419,30 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   .kw-tag { white-space: normal; max-width: 100%; box-sizing: border-box; flex-wrap: wrap; border-radius: 10px; }
   .ch-page { overflow-x: clip; }
 }
+
+/* Analytics page: Top 20 most talked-about products */
+.an-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--cds-gap-sm); counter-reset: none; }
+.an-item { display: grid; grid-template-columns: 2.2rem minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: var(--cds-gap-md); align-items: start; padding: var(--cds-pad-md) var(--cds-pad-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-left: 3px solid var(--c, var(--color-border-line)); border-radius: var(--cds-radius); }
+.an-rank { font-size: 18px; font-weight: 700; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; line-height: 1.2; }
+.an-name { font-weight: 600; font-size: var(--cds-font-size-heading); line-height: 1.35; }
+.an-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 4px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.an-buzz { display: flex; align-items: center; gap: 6px; }
+.an-buzz i { display: inline-block; height: 6px; border-radius: 3px; background: var(--c, var(--color-fg-muted)); opacity: .8; }
+.an-col-h { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+.an-range { font-weight: 700; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-heading); }
+.an-range small { display: block; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.an-bar { position: relative; height: 6px; border-radius: 3px; background: var(--color-border-line); margin: 6px 0 2px; }
+.an-bar .fill { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: color-mix(in srgb, var(--c, #94a3b8) 70%, transparent); }
+.an-bar .msrp { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #22c55e; }
+.an-best a { font-weight: 700; }
+.an-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.an-chip { display: inline-flex; gap: 4px; align-items: baseline; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); border-radius: 5px; padding: 1px 7px; color: var(--color-fg); text-decoration: none; white-space: nowrap; }
+.an-chip b { font-variant-numeric: tabular-nums; }
+.an-chip:hover { border-color: var(--color-fg-muted); }
+.an-chip.out { color: var(--color-fg-muted); }
+.an-chip.out b { text-decoration: line-through; font-weight: 400; }
+@media (max-width: 900px) { .an-item { grid-template-columns: 2rem minmax(0, 1fr); } .an-item > .an-prices, .an-item > .an-where { grid-column: 2; } }
+@media (max-width: 640px) { .an-name { font-size: 15px; } .an-chip { font-size: 12.5px; padding: 3px 8px; } }
 [data-dash-source-state=empty] { color: transparent; }
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 </style>
@@ -468,6 +492,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 
   <nav class="ch-nav" id="nav" aria-label="Pages">
     <a href="#/" data-page="home">Home <span class="deal-n" id="nav-deals" hidden title="Live deals"></span></a>
+    <a href="#/analytics" data-page="analytics">Analytics</a>
     <a href="#/official" data-page="official">Official</a>
     <a href="#/drawings" data-page="drawings">Drawings</a>
     <a href="#/bigbox" data-page="bigbox">Big-box</a>
@@ -495,6 +520,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
       <h2 class="ch-section-title">Pages</h2>
       <div class="ch-go-grid">
         <a class="ch-go acc-official" href="#/official"><span class="g-top">Official drops <span class="g-n" data-count="official"></span></span><span class="g-sub">Pokémon Center, Premium Bandai and official releases. The real MSRP.</span></a>
+        <a class="ch-go" href="#/analytics" style="--acc: #22c55e"><span class="g-top">Analytics <span class="g-n" data-count="analytics"></span></span><span class="g-sub">Top 20 most talked-about products and the prices they sell for.</span></a>
         <a class="ch-go acc-draw-go" href="#/drawings"><span class="g-top">Drawings &amp; raffles <span class="g-n" data-count="drawings"></span></span><span class="g-sub">Enter to win a chance to buy at retail.</span></a>
         <a class="ch-go acc-bigbox" href="#/bigbox"><span class="g-top">Big-box retail <span class="g-n" data-count="bigbox"></span></span><span class="g-sub">Target, Walmart, Best Buy and Amazon restocks and drop nights.</span></a>
         <a class="ch-go acc-lgs" href="#/stores"><span class="g-top">Game stores <span class="g-n" data-count="stores"></span></span><span class="g-sub">Preorders, premium items, resale and imports.</span></a>
@@ -503,6 +529,15 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
         <a class="ch-go" href="#/shows" style="--acc: var(--rg-queens)"><span class="g-top">Card shows <span class="g-n">by state</span></span><span class="g-sub">Local card shows from TCDB. Pick a state and month.</span></a>
         <a class="ch-go acc-market" href="#/shops"><span class="g-top">Shops <span class="g-n" data-count="shops"></span></span><span class="g-sub">Every place to buy, from MSRP down to resale, plus X searches.</span></a>
       </div>
+    </section>
+  </div>
+
+  <div class="ch-page" data-page="analytics" hidden>
+    <section class="ch-card" id="top-products" style="--acc: #22c55e">
+      <h2>Top 20 products <span class="ch-badge">Most talked about · last 30 days</span></h2>
+      <p class="ch-why">Ranked by how often each product comes up in the news here (X alerts, Discord monitors and store finds), with this week counting double. <b>Known prices</b> is the range seen across stores, resale and retail in the last 30 days; the green mark is the official MSRP. Tap a store to open its listing; struck-through prices are sold out.</p>
+      <ol class="an-list" id="top-list"></ol>
+      <div class="ch-empty" id="top-empty" hidden>Not enough news yet for this game.</div>
     </section>
   </div>
 
@@ -1011,9 +1046,119 @@ function drawDeals(rows) {
   sec.hidden = deals.length === 0;
   const nd = root.querySelector('#nav-deals'); if (nd) { nd.hidden = deals.length === 0; nd.textContent = '🔥 ' + deals.length; }
 }
+
+// ---- Analytics: Top 20 most talked-about products ----
+// A product = game + set + product type (+ language). Each news row that names one counts as a mention;
+// mentions from the last 7 days count double. Prices come from the row's price, or the first US-dollar
+// price in the headline when the headline names only one product.
+const AN_LANG = /\b(Japanese|Simplified Chinese|Traditional Chinese|Chinese|Spanish|Korean|Thai|Indonesian|French|German|Italian|Portuguese)\b/i;
+const AN_TYPE = { upc: 'Ultra-Premium Collection', etb: 'Elite Trainer Box', bundle: 'Booster bundle', double_pack: 'Double Pack', tin: 'Tin', sleeved_pack: 'Sleeved booster pack' };
+const AN_SEALED = /ultra[- ]premium collection|poster collection|premium collection|special collection|illustration collection|figure collection|pin collection|binder collection|ex box|blister|battle decks?|collection box|premium deck set|illustration box|starter deck|premium card collection|tin 4-pack|mini tins?/i;
+const AN_BOXSUB = /(collector|play|draft|set|jumpstart|beam me up|premium|precious|extra) booster (?:box|display)|booster case|case of \d+|\bcase\b/i;
+const AN_ANYTYPE = /ultra[- ]premium collections?|\bUPC\b|poster collection|premium collection|special collection|illustration collection|figure collections?|pin collection|binder collection|ex box(?:es)?|blisters?|battle decks?|premium deck set|illustration box|starter deck|elite trainer box(?:es)?|\bETBs?\b|booster bundles?|booster (?:box|boxes|display)|display box|double packs?|\btins?\b|sleeved (?:booster )?packs?/gi;
+const AN_MULTI = /set of \d|\b\d+[- ]pack\b|\b\d+ mini tins|case of \d|\bcase\b|\+ \d+ promos/i;
+const AN_PRICE = /(?<![A-Za-z])\$\s?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/;
+const anTitle = (s) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\bEx\b/, 'ex').replace(/ Decks$/, ' Deck').replace(/ Tins$/, ' Tin');
+const anMoney = (v) => '$' + (v >= 1000 ? d3.format(',.0f')(v) : (Math.round(v) === v ? v.toFixed(0) : v.toFixed(2)));
+function anProduct(r) {
+  const h = r.headline || '';
+  const hits = kwHits(h, r.game).all.filter((x) => x.row && x.row.set).sort((a, b) => a.s - b.s);
+  if (!hits.length) return null;
+  const set = hits[0].row.set;
+  let cls = dealClassOf(r), type;
+  const sealed = h.match(AN_SEALED);
+  if (cls === 'box') {
+    const sub = h.match(AN_BOXSUB);
+    type = sub ? (/case/i.test(sub[0]) && !/booster (?:box|display)/i.test(sub[0]) ? 'Booster case' : anTitle(sub[0]).replace(/ Display$/, ' box')) : 'Booster box';
+    type = type.replace(/ Box$/, ' box');
+  } else if (cls && AN_TYPE[cls]) type = AN_TYPE[cls];
+  else if (sealed) { type = anTitle(sealed[0]); cls = 'sealed'; }
+  else return null;
+  const lm = h.match(AN_LANG); const lang = lm && !set.toLowerCase().includes(lm[1].toLowerCase()) ? anTitle(lm[1]) : '';
+  // Price: the row's own, else the first $ price in the headline when it names one product type only.
+  let price = Number(r.price) > 0 ? Number(r.price) : null;
+  if (price == null) {
+    const types = (h.match(AN_ANYTYPE) || []).length;
+    const m = h.match(AN_PRICE);
+    const dollars = (h.match(/\$\s?\d/g) || []).length;
+    if (m && types <= 1 && dollars === 1 && !/CA\$|C\$|A\$/.test(h.slice(Math.max(0, m.index - 2), m.index + 1))) price = Number(m[1].replace(/,/g, ''));
+  }
+  // Multi-packs and cases aren't the single product's price.
+  if (price != null && AN_MULTI.test(h)) price = Number(r.price) > 0 && r.deal_class ? price : null;
+  const msrp = Number(r.msrp) > 0 ? Number(r.msrp) : null;
+  if (price != null && msrp && price < msrp * 0.5) price = null;
+  return { key: [r.game, set, type, lang].join('|'), set, type, lang, price, msrp };
+}
+function drawTop(rows) {
+  const list = root.querySelector('#top-list'), empty = root.querySelector('#top-empty');
+  const now = Date.now(), groups = new Map();
+  rows.forEach((r) => {
+    const age = (now - new Date(r.at)) / 864e5; if (!(age <= 30)) return;
+    const p = anProduct(r); if (!p) return;
+    let g = groups.get(p.key);
+    if (!g) { g = { ...p, game: r.game, rows: [], score: 0, recent: 0, msrp: null }; groups.set(p.key, g); }
+    g.rows.push({ r, price: p.price }); g.score += age <= 7 ? 2 : 1; if (age <= 7) g.recent++;
+    if (p.msrp && !g.msrp) g.msrp = p.msrp;
+  });
+  const top = [...groups.values()].map((g) => { g.sources = new Set(g.rows.map((x) => x.r.where)).size; return g; })
+    .sort((a, b) => b.score - a.score || b.sources - a.sources || new Date(b.rows[0].r.at) - new Date(a.rows[0].r.at)).slice(0, 20);
+  const maxScore = top.length ? top[0].score : 1;
+  list.replaceChildren(...top.map((g, i) => {
+    const li = el('li', 'an-item'); li.style.setProperty('--c', TCG_COLOR[g.game] || '#94a3b8');
+    li.appendChild(el('div', 'an-rank', String(i + 1)));
+    // Product + buzz
+    const info = el('div');
+    info.appendChild(el('div', 'an-name', g.set + ' ' + g.type + (g.lang ? ' (' + g.lang + ')' : '')));
+    const meta = el('div', 'an-meta');
+    const gp = el('span', 'ch-pill', g.game); gp.style.setProperty('--c', TCG_COLOR[g.game] || '#94a3b8'); meta.appendChild(gp);
+    const bz = el('span', 'an-buzz'); const bar = el('i'); bar.style.width = Math.max(8, Math.round(60 * g.score / maxScore)) + 'px'; bz.appendChild(bar);
+    bz.appendChild(document.createTextNode(g.rows.length + ' mention' + (g.rows.length === 1 ? '' : 's') + ' · ' + g.sources + ' source' + (g.sources === 1 ? '' : 's') + (g.recent ? ' · ' + g.recent + ' this week' : '')));
+    meta.appendChild(bz); info.appendChild(meta);
+    li.appendChild(info);
+    // Known prices
+    const priced = g.rows.filter((x) => x.price != null);
+    const pc = el('div', 'an-prices');
+    pc.appendChild(el('div', 'an-col-h', 'Known prices'));
+    if (priced.length) {
+      const ps = priced.map((x) => x.price), lo = Math.min(...ps), hi = Math.max(...ps);
+      const rg = el('div', 'an-range', lo === hi ? anMoney(lo) : anMoney(lo) + ' – ' + anMoney(hi));
+      rg.appendChild(el('small', null, priced.length + ' price' + (priced.length === 1 ? '' : 's') + ' seen' + (g.msrp ? ' · MSRP ' + anMoney(g.msrp) : '')));
+      pc.appendChild(rg);
+      const top_ = Math.max(hi, g.msrp || 0) * 1.05, bot = Math.min(lo, g.msrp || lo) * 0.95, span = Math.max(top_ - bot, 1);
+      const b = el('div', 'an-bar'); const f = el('span', 'fill'); f.style.left = ((lo - bot) / span * 100) + '%'; f.style.width = Math.max(2, (hi - lo) / span * 100) + '%'; b.appendChild(f);
+      if (g.msrp) { const m = el('span', 'msrp'); m.style.left = ((g.msrp - bot) / span * 100) + '%'; m.title = 'MSRP ' + anMoney(g.msrp); b.appendChild(m); }
+      pc.appendChild(b);
+    } else pc.appendChild(el('div', 'an-range', '—')).appendChild(el('small', null, 'No price posted yet'));
+    li.appendChild(pc);
+    // Where: best live price + every source, cheapest first (latest row per store and link)
+    const wc = el('div', 'an-where');
+    const seen = new Map();
+    g.rows.forEach((x) => { const k = x.r.where + '|' + x.r.url; if (!seen.has(k)) seen.set(k, x); });
+    const items = [...seen.values()].map((x) => ({ ...x, out: DEAL_GONE.test(x.r.headline || '') })).sort((a, b) => (a.out - b.out) || ((a.price ?? 1e9) - (b.price ?? 1e9)));
+    const best = items.find((x) => !x.out && x.price != null);
+    wc.appendChild(el('div', 'an-col-h', 'Lowest price not marked sold out'));
+    const bb = el('div', 'an-best');
+    if (best) { const a = el('a', null, anMoney(best.price) + ' at ' + best.r.where); a.href = best.r.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = best.r.headline; bb.appendChild(a); }
+    else bb.appendChild(el('span', 'ch-muted', 'All listings sold out or unpriced'));
+    wc.appendChild(bb);
+    const chips = el('div', 'an-chips');
+    items.slice(0, 8).forEach((x) => {
+      const a = el('a', 'an-chip' + (x.out ? ' out' : '')); a.href = x.r.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.title = x.r.headline + ' · ' + fmtPosted(x.r.at);
+      a.appendChild(document.createTextNode(x.r.where)); if (x.price != null) a.appendChild(el('b', null, anMoney(x.price)));
+      chips.appendChild(a);
+    });
+    if (items.length > 8) chips.appendChild(el('span', 'ch-muted', '+' + (items.length - 8) + ' more'));
+    wc.appendChild(chips);
+    li.appendChild(wc);
+    return li;
+  }));
+  empty.hidden = top.length !== 0;
+  const c = root.querySelector('[data-count="analytics"]'); if (c) c.textContent = top.length ? 'top ' + top.length : '';
+}
 // Pages: the hash picks one page (#/drawings). Old section links (#drawings) still land on the right page.
-const PAGES = { home: '', official: 'Official drops', drawings: 'Drawings', bigbox: 'Big-box retail', stores: 'Game stores', bandai: 'Bandai drop log', events: 'Conventions & events', shows: 'Card shows', shops: 'Shops' };
-const OLD_IDS = { overview: 'home', deals: 'home', 'coming-up': 'home', news: 'official', 'official-news': 'official', 'official-list': 'official', drawings: 'drawings', 'bigbox-news': 'bigbox', 'other-news': 'stores', 'bandai-log': 'bandai', conventions: 'events', 'card-shows': 'shows', 'where-to-buy': 'shops', coverage: 'shops', channels: 'shops', 'x-searches': 'shops' };
+const PAGES = { home: '', analytics: 'Analytics', official: 'Official drops', drawings: 'Drawings', bigbox: 'Big-box retail', stores: 'Game stores', bandai: 'Bandai drop log', events: 'Conventions & events', shows: 'Card shows', shops: 'Shops' };
+const OLD_IDS = { top: 'analytics', 'top-products': 'analytics', overview: 'home', deals: 'home', 'coming-up': 'home', news: 'official', 'official-news': 'official', 'official-list': 'official', drawings: 'drawings', 'bigbox-news': 'bigbox', 'other-news': 'stores', 'bandai-log': 'bandai', conventions: 'events', 'card-shows': 'shows', 'where-to-buy': 'shops', coverage: 'shops', channels: 'shops', 'x-searches': 'shops' };
 const BASE_TITLE = document.title;
 let curPage = null;
 function route() {
@@ -1212,6 +1357,7 @@ dash.onData(() => {
   if (news.status === 'ok') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
     drawDeals(all);
+    drawTop(all);
     const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
