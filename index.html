@@ -453,6 +453,12 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 .an-chip:hover { border-color: var(--color-fg-muted); }
 .an-chip.out { color: var(--color-fg-muted); }
 .an-chip.out b { text-decoration: line-through; font-weight: 400; }
+.an-range a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: 3px; }
+.an-var { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 2px; }
+.an-seen { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.an-bar .mkt { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-fg); }
+.an-hid { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 4px; }
+.d-meta a.d-mkt { color: inherit; }
 @media (max-width: 900px) { .an-item { grid-template-columns: 2rem minmax(0, 1fr); } .an-item > .an-prices, .an-item > .an-where { grid-column: 2; } }
 @media (max-width: 640px) { .an-name { font-size: 15px; } .an-chip { font-size: 12.5px; padding: 3px 8px; } }
 [data-dash-source-state=empty] { color: transparent; }
@@ -516,7 +522,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 
   <div class="ch-page" data-page="home" hidden>
     <section class="ch-deals" id="deals" hidden data-source="news">
-      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP (Pokémon boxes $190 or less) · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
+      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP (Pokémon boxes $190 or less) · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · never above the TCGplayer market price (or the lowest eBay listing) · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
       <ul id="deals-list"></ul>
     </section>
     <article class="ch-card acc-official" id="coming-up">
@@ -546,7 +552,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
   <div class="ch-page" data-page="analytics" hidden>
     <section class="ch-card" id="top-products" style="--acc: #22c55e">
       <h2>Top 20 products <span class="ch-badge">Most talked about · last 30 days</span></h2>
-      <p class="ch-why">Ranked by how often each product comes up in the news here (X alerts, Discord monitors and store finds), with this week counting double. <b>Known prices</b> is the range seen across stores, resale and retail in the last 30 days; the green mark is the official MSRP. Tap a store to open its listing; struck-through prices are sold out.</p>
+      <p class="ch-why">Ranked by how often each product comes up in the news here (X alerts, Discord monitors and store finds), with this week counting double. <b>Market price</b> is the TCGplayer market price (or the lowest current eBay listing when TCGplayer has none); tap it to check. Anything above market isn't worth it, so only prices at or under market are listed. On the bar, the dark mark is market and the green mark is the official MSRP. Tap a store to open its listing; struck-through prices are sold out.</p>
       <ol class="an-list" id="top-list"></ol>
       <div class="ch-empty" id="top-empty" hidden>Not enough news yet for this game.</div>
     </section>
@@ -1000,7 +1006,29 @@ const dealClassOf = (r) => {
   for (const [c, re] of DEAL_PATTERNS) { const m = h.match(re); if (m && m.index < at) { at = m.index; best = c; } }
   return best;
 };
-const dealOf = (r) => {
+// Market price (data/market.json, refreshed by the scan from TCGplayer, or the lowest current eBay listing),
+// keyed by the Analytics product key. A row can carry its own market_price too. Anything above market isn't worth mentioning.
+let MARKET = new Map();
+const marketFor = (r) => {
+  if (Number(r.market_price) > 0) return { price: Number(r.market_price), url: r.market_url || '', source: r.market_source || 'TCGplayer' };
+  if (!MARKET.size) return null;
+  const p = anProduct(r); const m = p && MARKET.get(p.key);
+  return m ? marketCap(m, r.headline) : null;
+};
+// A product with several versions (Day/Night UPC, one tin per Pokémon): use the version the headline names,
+// otherwise the priciest version, so a fair price for any version isn't hidden.
+const marketCap = (m, headline) => {
+  const src = m.source || 'TCGplayer', vs = (m.variants || []).filter((v) => v && Number(v.market) > 0);
+  if (vs.length > 1) {
+    const h = (headline || '').toLowerCase();
+    const hit = vs.find((v) => { const b = /\[([^\]]+)\]/.exec(v.name || ''); const k = b && b[1].replace(/\b(ex|mega)\b/gi, '').trim().toLowerCase(); return k && k.length > 2 && h.includes(k); });
+    if (hit) return { price: Number(hit.market), url: hit.url || m.url || '', source: src };
+    const top = vs.reduce((a, b) => (Number(b.market) > Number(a.market) ? b : a));
+    return { price: Number(top.market), url: top.url || m.url || '', source: src };
+  }
+  return { price: Number(m.market_price), url: m.url || '', source: src };
+};
+const dealOf = (r, ignoreMarket) => {
   const price = Number(r.price), msrp = Number(r.msrp);
   if (!(price > 0)) return null;
   const cls = dealClassOf(r); const rule = cls && DEAL_RULES[cls]; if (!rule) return null;
@@ -1014,7 +1042,9 @@ const dealOf = (r) => {
   // Some games get a hard ceiling on top of the MSRP rule (Pokémon booster boxes: $190 or less).
   if (rule.gameCap && rule.gameCap[r.game] != null) limit = Math.min(limit, rule.gameCap[r.game]);
   if (price > limit + 1e-9) return null;
-  return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label, limit, room: limit - price };
+  const market = ignoreMarket ? null : marketFor(r);
+  if (market && price > market.price + 1e-9) return null;
+  return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label, limit, room: limit - price, market };
 };
 const dealPill = (d, short) => d.msrp != null
   ? (d.over <= 0 ? 'at or under MSRP' : '+$' + (short ? Math.round(d.over) : d.over.toFixed(2)) + ' over' + (short ? ' MSRP' : ''))
@@ -1037,6 +1067,9 @@ const fmtET = (s) => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleSt
 function drawDeals(rows) {
   const sec = root.querySelector('#deals'), list = root.querySelector('#deals-list');
   const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => b.d.room / b.d.limit - a.d.room / a.d.limit);
+  // For the scan: products of every live deal before the market cap (so their market price gets looked up), and the deals shown.
+  CG.dealProducts = rows.filter((r) => dealLive(r) && dealOf(r, true)).map(anProduct).filter(Boolean).map(anDesc);
+  CG.deals = deals.map(({ r, d }) => ({ headline: r.headline, game: r.game, where: r.where, url: r.url, price: d.price, msrp: d.msrp, label: d.label, cls: d.cls, limit: d.limit, room: d.room, market: d.market }));
   list.replaceChildren(...deals.map(({ r, d }) => {
     const li = el('li');
     const hits = linkHL(li, r.headline, r.url, r.game);
@@ -1044,6 +1077,7 @@ function drawDeals(rows) {
     const b = el('b', null, '$' + d.price.toFixed(2)); meta.appendChild(b);
     meta.appendChild(el('span', null, d.label));
     if (d.msrp != null) meta.appendChild(el('span', null, 'MSRP $' + d.msrp.toFixed(2)));
+    if (d.market) { const mk = el(d.market.url ? 'a' : 'span', 'd-mkt', d.market.source + ' market $' + d.market.price.toFixed(2)); if (d.market.url) { mk.href = d.market.url; mk.target = '_blank'; mk.rel = 'noopener noreferrer'; } meta.appendChild(mk); }
     meta.appendChild(el('span', 'deal-pill', dealPill(d, false)));
     if (r.where) meta.appendChild(el('span', null, r.where));
     if (r.happens && r.happens.length > 10) meta.appendChild(el('span', null, 'ends ' + fmtET(r.happens)));
@@ -1098,6 +1132,12 @@ function anProduct(r) {
   if (price != null && msrp && price < msrp * 0.5) price = null;
   return { key: [r.game, set, type, lang].join('|'), set, type, lang, price, msrp };
 }
+const anName = (g) => g.set + ' ' + g.type + (g.lang ? ' (' + g.lang + ')' : '');
+const anDesc = (g) => ({ key: g.key, game: g.key.split('|')[0], set: g.set, type: g.type, lang: g.lang || '', name: anName(g) });
+const anDay = (s) => { const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }); };
+const anLink = (text, href, title) => { const a = el('a', null, text); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; if (title) a.title = title; return a; };
+const anVar = (name) => { const m = /\[([^\]]+)\]/.exec(name || ''); return m ? m[1] : (name || 'Other version'); };
+window.CG = window.CG || { top: [], dealProducts: [], deals: [], wanted: [] };
 function drawTop(rows) {
   const list = root.querySelector('#top-list'), empty = root.querySelector('#top-empty');
   const now = Date.now(), groups = new Map();
@@ -1109,56 +1149,78 @@ function drawTop(rows) {
     g.rows.push({ r, price: p.price }); g.score += age <= 7 ? 2 : 1; if (age <= 7) g.recent++;
     if (p.msrp && !g.msrp) g.msrp = p.msrp;
   });
-  const top = [...groups.values()].map((g) => { g.sources = new Set(g.rows.map((x) => x.r.where)).size; return g; })
-    .sort((a, b) => b.score - a.score || b.sources - a.sources || new Date(b.rows[0].r.at) - new Date(a.rows[0].r.at)).slice(0, 20);
+  const ranked = [...groups.values()].map((g) => { g.sources = new Set(g.rows.map((x) => x.r.where)).size; return g; })
+    .sort((a, b) => b.score - a.score || b.sources - a.sources || new Date(b.rows[0].r.at) - new Date(a.rows[0].r.at));
+  const top = ranked.slice(0, 20);
+  CG.top = ranked.slice(0, 40).map(anDesc); // the scan looks up market prices for these (a few spares in case the ranking shifts)
   const maxScore = top.length ? top[0].score : 1;
   list.replaceChildren(...top.map((g, i) => {
     const li = el('li', 'an-item'); li.style.setProperty('--c', TCG_COLOR[g.game] || '#94a3b8');
     li.appendChild(el('div', 'an-rank', String(i + 1)));
     // Product + buzz
     const info = el('div');
-    info.appendChild(el('div', 'an-name', g.set + ' ' + g.type + (g.lang ? ' (' + g.lang + ')' : '')));
+    info.appendChild(el('div', 'an-name', anName(g)));
     const meta = el('div', 'an-meta');
     const gp = el('span', 'ch-pill', g.game); gp.style.setProperty('--c', TCG_COLOR[g.game] || '#94a3b8'); meta.appendChild(gp);
     const bz = el('span', 'an-buzz'); const bar = el('i'); bar.style.width = Math.max(8, Math.round(60 * g.score / maxScore)) + 'px'; bz.appendChild(bar);
     bz.appendChild(document.createTextNode(g.rows.length + ' mention' + (g.rows.length === 1 ? '' : 's') + ' · ' + g.sources + ' source' + (g.sources === 1 ? '' : 's') + (g.recent ? ' · ' + g.recent + ' this week' : '')));
     meta.appendChild(bz); info.appendChild(meta);
     li.appendChild(info);
-    // Known prices
-    const priced = g.rows.filter((x) => x.price != null);
+    // Market price (TCGplayer, or the lowest eBay listing). Prices above it aren't worth mentioning.
+    const m = MARKET.get(g.key) || null, mp = m ? Number(m.market_price) : null;
+    const under = (x) => mp == null || x.price == null || x.price <= marketCap(m, x.r.headline).price + 1e-9;
     const pc = el('div', 'an-prices');
-    pc.appendChild(el('div', 'an-col-h', 'Known prices'));
+    pc.appendChild(el('div', 'an-col-h', 'Market price'));
+    const rg = el('div', 'an-range');
+    if (m) {
+      const src = m.source || 'TCGplayer';
+      rg.appendChild(m.url ? anLink(anMoney(mp), m.url, (m.product || anName(g)) + ' on ' + src) : document.createTextNode(anMoney(mp)));
+      rg.appendChild(el('small', null, src + (src === 'eBay' ? ' lowest listing' : ' market') + (m.checked_at ? ' · checked ' + anDay(m.checked_at) : '')));
+      pc.appendChild(rg);
+      const others = (m.variants || []).filter((v) => v && v.url && v.url !== m.url);
+      if (others.length) {
+        const s = el('span', 'an-var', 'Other version' + (others.length === 1 ? '' : 's') + ': ');
+        others.forEach((v, j) => { if (j) s.appendChild(document.createTextNode(' · ')); s.appendChild(anLink(anVar(v.name) + ' ' + anMoney(v.market), v.url, v.name)); });
+        pc.appendChild(s);
+      }
+    } else {
+      rg.textContent = '—';
+      const s = el('small', null, 'No TCGplayer match yet · ');
+      s.appendChild(anLink('eBay listings', 'https://www.ebay.com/sch/i.html?_nkw=' + encodeURIComponent(anName(g)) + '&_sop=15&LH_BIN=1', 'Lowest buy-it-now listings first'));
+      rg.appendChild(s); pc.appendChild(rg);
+    }
+    const priced = g.rows.filter((x) => x.price != null && under(x));
     if (priced.length) {
       const ps = priced.map((x) => x.price), lo = Math.min(...ps), hi = Math.max(...ps);
-      const rg = el('div', 'an-range', lo === hi ? anMoney(lo) : anMoney(lo) + ' – ' + anMoney(hi));
-      rg.appendChild(el('small', null, priced.length + ' price' + (priced.length === 1 ? '' : 's') + ' seen' + (g.msrp ? ' · MSRP ' + anMoney(g.msrp) : '')));
-      pc.appendChild(rg);
-      const top_ = Math.max(hi, g.msrp || 0) * 1.05, bot = Math.min(lo, g.msrp || lo) * 0.95, span = Math.max(top_ - bot, 1);
+      pc.appendChild(el('div', 'an-seen', (mp != null ? 'At or under market: ' : 'Prices seen: ') + (lo === hi ? anMoney(lo) : anMoney(lo) + ' – ' + anMoney(hi)) + ' · ' + priced.length + ' price' + (priced.length === 1 ? '' : 's') + (g.msrp ? ' · MSRP ' + anMoney(g.msrp) : '')));
+      const top_ = Math.max(hi, g.msrp || 0, mp || 0) * 1.05, bot = Math.min(lo, g.msrp || lo, mp || lo) * 0.95, span = Math.max(top_ - bot, 1);
       const b = el('div', 'an-bar'); const f = el('span', 'fill'); f.style.left = ((lo - bot) / span * 100) + '%'; f.style.width = Math.max(2, (hi - lo) / span * 100) + '%'; b.appendChild(f);
-      if (g.msrp) { const m = el('span', 'msrp'); m.style.left = ((g.msrp - bot) / span * 100) + '%'; m.title = 'MSRP ' + anMoney(g.msrp); b.appendChild(m); }
+      if (g.msrp) { const k = el('span', 'msrp'); k.style.left = ((g.msrp - bot) / span * 100) + '%'; k.title = 'MSRP ' + anMoney(g.msrp); b.appendChild(k); }
+      if (mp != null) { const k = el('span', 'mkt'); k.style.left = ((mp - bot) / span * 100) + '%'; k.title = 'Market ' + anMoney(mp); b.appendChild(k); }
       pc.appendChild(b);
-    } else pc.appendChild(el('div', 'an-range', '—')).appendChild(el('small', null, 'No price posted yet'));
+    } else pc.appendChild(el('div', 'an-seen', (mp != null ? 'No store price at or under market yet' : 'No price posted yet') + (g.msrp ? ' · MSRP ' + anMoney(g.msrp) : '')));
     li.appendChild(pc);
-    // Where: best live price + every source, cheapest first (latest row per store and link)
+    // Where: best price at or under market + every source at or under it, cheapest first (latest row per store and link)
     const wc = el('div', 'an-where');
     const seen = new Map();
     g.rows.forEach((x) => { const k = x.r.where + '|' + x.r.url; if (!seen.has(k)) seen.set(k, x); });
-    const items = [...seen.values()].map((x) => ({ ...x, out: DEAL_GONE.test(x.r.headline || '') })).sort((a, b) => (a.out - b.out) || ((a.price ?? 1e9) - (b.price ?? 1e9)));
+    const all = [...seen.values()].map((x) => ({ ...x, out: DEAL_GONE.test(x.r.headline || '') })).sort((a, b) => (a.out - b.out) || ((a.price ?? 1e9) - (b.price ?? 1e9)));
+    const items = all.filter(under), hidden = all.length - items.length;
     const best = items.find((x) => !x.out && x.price != null);
-    wc.appendChild(el('div', 'an-col-h', 'Lowest price not marked sold out'));
+    wc.appendChild(el('div', 'an-col-h', mp != null ? 'Best price at or under market' : 'Lowest price not marked sold out'));
     const bb = el('div', 'an-best');
-    if (best) { const a = el('a', null, anMoney(best.price) + ' at ' + best.r.where); a.href = best.r.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = best.r.headline; bb.appendChild(a); }
-    else bb.appendChild(el('span', 'ch-muted', 'All listings sold out or unpriced'));
+    if (best) bb.appendChild(anLink(anMoney(best.price) + ' at ' + best.r.where, best.r.url, best.r.headline));
+    else bb.appendChild(el('span', 'ch-muted', mp != null ? 'Nothing at or under market right now' : 'All listings sold out or unpriced'));
     wc.appendChild(bb);
     const chips = el('div', 'an-chips');
     items.slice(0, 8).forEach((x) => {
-      const a = el('a', 'an-chip' + (x.out ? ' out' : '')); a.href = x.r.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-      a.title = x.r.headline + ' · ' + fmtPosted(x.r.at);
+      const a = anLink('', x.r.url, x.r.headline + ' · ' + fmtPosted(x.r.at)); a.className = 'an-chip' + (x.out ? ' out' : '');
       a.appendChild(document.createTextNode(x.r.where)); if (x.price != null) a.appendChild(el('b', null, anMoney(x.price)));
       chips.appendChild(a);
     });
     if (items.length > 8) chips.appendChild(el('span', 'ch-muted', '+' + (items.length - 8) + ' more'));
     wc.appendChild(chips);
+    if (hidden) wc.appendChild(el('div', 'an-hid', hidden + ' listing' + (hidden === 1 ? '' : 's') + ' above market not shown'));
     li.appendChild(wc);
     return li;
   }));
@@ -1362,12 +1424,16 @@ dash.onData(() => {
   }
 
   // News panels
-  const news = dash.data('news');
-  if (news.status === 'ok') {
+  const news = dash.data('news'), mkd = dash.data('market');
+  // Wait for market.json (a missing file just means no market prices) so an above-market deal never flashes up.
+  if (mkd.status !== 'loading') MARKET = new Map(mkd.status === 'ok' ? mkd.data.filter((m) => m && m.key && Number(m.market_price) > 0).map((m) => [m.key, m]) : []);
+  if (news.status === 'ok' && mkd.status !== 'loading') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
     drawDeals(all);
     drawTop(all);
-    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
+    const seenK = new Set(); CG.wanted = [...CG.top, ...CG.dealProducts].filter((p) => !seenK.has(p.key) && seenK.add(p.key));
+    CG.ready = true;
+    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit) + (dl.market ? ' · ' + dl.market.source + ' market $' + dl.market.price.toFixed(2) : ''); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
       const td = el('td');
