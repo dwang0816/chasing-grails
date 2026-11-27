@@ -87,6 +87,11 @@ STOP = {'the', 'of', 'and', 'a', 'an', 'vol', 'edition', 'set', 'booster', 'box'
         'cyberpunk', 'gundam', 'tcg', 'expansion', 'scarlet', 'violet', 'sv', 'mega', 'me', 'bandai', 'official', 'product',
         'products', 'collector', 'play', 'version', 'ver', 'gift', 'special', 'exclusive', 'limited', 'league', 'legends'}
 
+# Generic words a TCGplayer name may add without naming a different product. Anything else it adds
+# ("Ultra", "Mega", "Enhanced", "Half", "Pokemon Center", a Pokémon...) must be in the store's title too.
+EXTRA_OK = {'the', 'of', 'and', 'a', 'an', 'box', 'booster', 'display', 'card', 'cards', 'game', 'tcg', 'pokemon', 'one',
+            'piece', 'set', 'vol', 'edition', 'retail', 'ex', 'v', 'gx', 'collection', 'new', 'trading', 'english'}
+
 class Blocked(Exception):
     pass
 
@@ -216,7 +221,7 @@ def match_title(title, game, lang, ptype, cache):
             # Every distinctive word in the TCGplayer name must be in the listing title (so "Enhanced",
             # "Pokemon Center", "Half" or another variant is never matched to a plain listing).
             tw = set(norm(title).split())
-            extra_words = [w for w in tokens(r.get('productName', '')) if w not in tw and not codes(w) and w not in ('retail', 'ex', 'v', 'gx')]
+            extra_words = [w for w in norm(r.get('productName', '')).split() if (len(w) > 1 or w.isdigit()) and w not in tw and not codes(w) and w not in EXTRA_OK]
             if extra_words:
                 continue
             words = set(hay.split())
@@ -273,8 +278,12 @@ def store_products(src):
                     continue
                 if re.search(r'sealed|booster|box|pre-?order|collection|elite trainer|etb|bundle|tin|deck|japanese|chinese|display|case|product', t):
                     feeds.append('/collections/%s/products.json' % c['handle'])
+        budget = 40   # page requests per store, so one huge catalog can't use up Shopify's patience for the rest
         for f in feeds:
             for pg in range(1, 13):
+                budget -= 1
+                if budget < 0:
+                    break
                 d = curl_json(base + f + '?limit=250&page=%d' % pg, shop=True)
                 if not d or not d.get('products'):
                     break
@@ -401,9 +410,16 @@ def sweep(sources_path, out_path, cache_path, news_path=None):
     sources = json.load(open(sources_path))
     cache, prev, msrp_by_product = load_state(out_path, cache_path, news_path)
     rows, report, done, blocked = [], [], set(), []
-    for src in sources:
-        if src.get('channel') not in SWEEP_CHANNELS:
-            continue
+    # Small catalogs first: if Shopify starts refusing this machine, as many stores as possible are already read.
+    def size(src):
+        u = urllib.parse.urlparse(src['url'] if '://' in src['url'] else 'https://' + src['url'])
+        try:
+            m = curl_json('%s://%s/meta.json' % (u.scheme or 'https', u.netloc), shop=True)
+            return (m or {}).get('published_products_count') or 0 if isinstance(m, dict) and 'currency' in m else -1
+        except Blocked:
+            return 10 ** 9
+    order = sorted([s for s in sources if s.get('channel') in SWEEP_CHANNELS], key=size)
+    for src in order:
         base, meta, prods, note = store_products(src)
         if base is None:
             report.append('%-24s skipped: %s' % (src['name'], note))
