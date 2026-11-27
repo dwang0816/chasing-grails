@@ -71,7 +71,7 @@ a { color: inherit; }
   const stripGames = (s) => (s || '').split(' · ').filter((g) => g && !HIDE_GAMES.includes(g)).join(' · ');
   const hideGames = (id, rows) => {
     if (!HIDE_GAMES.length) return rows;
-    if (['news', 'keywords', 'x_searches'].includes(id)) return rows.filter((r) => !HIDE_GAMES.includes(r.game));
+    if (['news', 'store_deals', 'keywords', 'x_searches'].includes(id)) return rows.filter((r) => !HIDE_GAMES.includes(r.game));
     if (id === 'events') return rows.filter((r) => !r.games || stripGames(r.games)).map((r) => ({ ...r, games: stripGames(r.games) || r.games }));
     if (id === 'sources') return rows.map((r) => { const o = { ...r, games: stripGames(r.games) }; if (HIDE_GAMES.includes('MTG')) o.mtg = ''; return o; });
     return rows;
@@ -459,6 +459,42 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 .an-bar .mkt { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--color-fg); }
 .an-hid { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 4px; }
 .d-meta a.d-mkt { color: inherit; }
+.tier-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; background: var(--t); color: var(--ti); vertical-align: 1px; white-space: nowrap; }
+.ch-deals li.has-tier { border-left: 4px solid var(--t); padding-left: 10px; border-top-style: solid; }
+.ch-deals li.has-tier:first-child { padding-top: 0; }
+.tier-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tier-legend span { white-space: nowrap; }
+.deal-pill.tiered { background: var(--t); color: var(--ti); }
+.t-god { --t: #ef4444; --ti: #ffffff; }
+.ch-table tr:has(td.is-deal.t-god) { background: color-mix(in srgb, #ef4444 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-god) td:first-child { box-shadow: inset 3px 0 0 #ef4444; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-god) { box-shadow: inset 3px 0 0 #ef4444; } }
+.an-chip.t-god { border-color: #ef4444; box-shadow: inset 3px 0 0 #ef4444; }
+.t-legendary { --t: #f97316; --ti: #1c0a00; }
+.ch-table tr:has(td.is-deal.t-legendary) { background: color-mix(in srgb, #f97316 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-legendary) td:first-child { box-shadow: inset 3px 0 0 #f97316; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-legendary) { box-shadow: inset 3px 0 0 #f97316; } }
+.an-chip.t-legendary { border-color: #f97316; box-shadow: inset 3px 0 0 #f97316; }
+.t-epic { --t: #a855f7; --ti: #ffffff; }
+.ch-table tr:has(td.is-deal.t-epic) { background: color-mix(in srgb, #a855f7 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-epic) td:first-child { box-shadow: inset 3px 0 0 #a855f7; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-epic) { box-shadow: inset 3px 0 0 #a855f7; } }
+.an-chip.t-epic { border-color: #a855f7; box-shadow: inset 3px 0 0 #a855f7; }
+.t-rare { --t: #3b82f6; --ti: #ffffff; }
+.ch-table tr:has(td.is-deal.t-rare) { background: color-mix(in srgb, #3b82f6 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-rare) td:first-child { box-shadow: inset 3px 0 0 #3b82f6; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-rare) { box-shadow: inset 3px 0 0 #3b82f6; } }
+.an-chip.t-rare { border-color: #3b82f6; box-shadow: inset 3px 0 0 #3b82f6; }
+.t-uncommon { --t: #22c55e; --ti: #052e16; }
+.ch-table tr:has(td.is-deal.t-uncommon) { background: color-mix(in srgb, #22c55e 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-uncommon) td:first-child { box-shadow: inset 3px 0 0 #22c55e; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-uncommon) { box-shadow: inset 3px 0 0 #22c55e; } }
+.an-chip.t-uncommon { border-color: #22c55e; box-shadow: inset 3px 0 0 #22c55e; }
+.t-common { --t: #9ca3af; --ti: #111827; }
+.ch-table tr:has(td.is-deal.t-common) { background: color-mix(in srgb, #9ca3af 10%, transparent); }
+.ch-table tr:has(td.is-deal.t-common) td:first-child { box-shadow: inset 3px 0 0 #9ca3af; }
+@media (max-width: 640px) { .ch-table tr:has(td.is-deal.t-common) { box-shadow: inset 3px 0 0 #9ca3af; } }
+.an-chip.t-common { border-color: #9ca3af; box-shadow: inset 3px 0 0 #9ca3af; }
 @media (max-width: 900px) { .an-item { grid-template-columns: 2rem minmax(0, 1fr); } .an-item > .an-prices, .an-item > .an-where { grid-column: 2; } }
 @media (max-width: 640px) { .an-name { font-size: 15px; } .an-chip { font-size: 12.5px; padding: 3px 8px; } }
 [data-dash-source-state=empty] { color: transparent; }
@@ -522,7 +558,8 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 
   <div class="ch-page" data-page="home" hidden>
     <section class="ch-deals" id="deals" hidden data-source="news">
-      <div class="ch-deals-head">🔥 Deals <span class="sub">boxes within $90 of MSRP (Pokémon boxes $190 or less) · UPC ≤ $170 · ETB ≤ $80 · bundles ≤ $35 · tins ≤ $20 · double packs ≤ $15.99 · sleeved packs ≤ $6 · other sealed within 25% of MSRP · never above the TCGplayer market price (or the lowest eBay listing) · only while still available and seen in the last 3 days (big-box restocks: 24 hours)</span></div>
+      <div class="ch-deals-head">🔥 Deals <span class="sub">from the news and a sweep of every saved store · never above the TCGplayer market price (or the lowest eBay listing) · only while still available and seen in the last 3 days (big-box restocks: 24 hours) · hot = a Top 10 product on Analytics, or market at least 1.5× MSRP</span></div>
+      <div class="tier-legend"><span><span class="tier-badge t-god">God</span> below MSRP on a hot item</span><span><span class="tier-badge t-legendary">Legendary</span> below MSRP</span><span><span class="tier-badge t-epic">Epic</span> at MSRP or up to 10% over</span><span><span class="tier-badge t-rare">Rare</span> 15%+ under market</span><span><span class="tier-badge t-uncommon">Uncommon</span> $5+ under market</span><span><span class="tier-badge t-common">Common</span> at market or less than $5 under</span></div>
       <ul id="deals-list"></ul>
     </section>
     <article class="ch-card acc-official" id="coming-up">
@@ -1028,7 +1065,7 @@ const marketCap = (m, headline) => {
   }
   return { price: Number(m.market_price), url: m.url || '', source: src };
 };
-const dealOf = (r, ignoreMarket) => {
+const legacyDeal = (r, ignoreMarket) => {
   const price = Number(r.price), msrp = Number(r.msrp);
   if (!(price > 0)) return null;
   const cls = dealClassOf(r); const rule = cls && DEAL_RULES[cls]; if (!rule) return null;
@@ -1046,12 +1083,45 @@ const dealOf = (r, ignoreMarket) => {
   if (market && price > market.price + 1e-9) return null;
   return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label, limit, room: limit - price, market };
 };
-const dealPill = (d, short) => d.msrp != null
-  ? (d.over <= 0 ? 'at or under MSRP' : '+$' + (short ? Math.round(d.over) : d.over.toFixed(2)) + ' over' + (short ? ' MSRP' : ''))
-  : '$' + (short ? Math.round(d.room) : d.room.toFixed(2)) + ' under the $' + d.limit + ' limit';
+// Rarity tiers. Never above market (TCGplayer, or the lowest eBay listing). Then, best first:
+//   God: below MSRP on a hot item (Analytics Top 10, or market at least 1.5x MSRP) · Legendary: below MSRP
+//   Epic: at MSRP or up to 10% over · Rare: at least 15% (and $10) under market · Uncommon: $5+ under market
+//   Common: at market or less than $5 under. A listing with no market price yet falls back to the old flat
+//   limits above (Pokemon boxes $190, ETB $80...) and shows as Common.
+const TIERS = [{ id: 'god', name: 'God', color: '#ef4444', ink: '#ffffff' }, { id: 'legendary', name: 'Legendary', color: '#f97316', ink: '#1c0a00' }, { id: 'epic', name: 'Epic', color: '#a855f7', ink: '#ffffff' }, { id: 'rare', name: 'Rare', color: '#3b82f6', ink: '#ffffff' }, { id: 'uncommon', name: 'Uncommon', color: '#22c55e', ink: '#052e16' }, { id: 'common', name: 'Common', color: '#9ca3af', ink: '#111827' }];
+const TIER = Object.fromEntries(TIERS.map((t, i) => [t.id, { ...t, rank: TIERS.length - i }]));
+let MSRP = new Map(), HOT = new Set();
+const prodKey = (r) => { const p = anProduct(r); return p ? p.key : null; };
+const tierDeal = (r, ignoreMarket) => {
+  const price = Number(r.price);
+  if (!(price > 0)) return null;
+  const cls = dealClassOf(r); const rule = cls && DEAL_RULES[cls]; if (!rule) return null;
+  const key = prodKey(r);
+  let msrp = Number(r.msrp) > 0 ? Number(r.msrp) : (MSRP.get(key) || MSRP.get(r.market_product) || 0);
+  const hasMsrp = msrp > 0;
+  if (hasMsrp && price < msrp * 0.5) return null; // likely a pack price on a box listing: skip
+  const market = ignoreMarket ? null : marketFor(r);
+  if (market && price > market.price + 1e-9) return null;
+  let tier, base = null;
+  if (hasMsrp && price < msrp - 0.005) tier = (HOT.has(key) || (market && market.price >= msrp * 1.5)) ? 'god' : 'legendary';
+  else if (hasMsrp && price <= msrp * 1.10 + 0.005) tier = 'epic';
+  else if (market) { const off = market.price - price; tier = off >= Math.max(10, market.price * 0.15) - 1e-9 ? 'rare' : off >= 5 - 1e-9 ? 'uncommon' : 'common'; }
+  else { base = legacyDeal(r, true); if (!base) return null; tier = 'common'; }
+  const save = hasMsrp && price < msrp ? (msrp - price) / msrp + 1 : market ? (market.price - price) / market.price : base ? base.room / base.limit : 0;
+  return { price, msrp: hasMsrp ? msrp : null, over: hasMsrp ? price - msrp : null, cls, label: rule.label,
+    limit: base ? base.limit : null, room: base ? base.room : null, market, tier, t: TIER[tier], save };
+};
+const dealPill = (d, short) => {
+  const m = (v) => '$' + (short ? Math.round(v) : v.toFixed(2));
+  if (d.tier === 'god' || d.tier === 'legendary') return m(d.msrp - d.price) + ' under MSRP';
+  if (d.tier === 'epic') return d.price <= d.msrp + 0.005 ? 'at MSRP' : '+' + m(d.price - d.msrp) + ' over MSRP';
+  if (d.market) { const off = d.market.price - d.price; return off < 0.5 ? 'at market' : m(off) + ' under market'; }
+  return d.msrp != null ? (d.over <= 0 ? 'at or under MSRP' : '+' + m(d.over) + ' over MSRP') : m(d.room) + ' under the $' + d.limit + ' limit';
+};
 // A deal stays up only while it can still be bought: never once it's sold out or gone, and only while it's fresh.
 // Fresh = a timed sale or drawing that hasn't ended, or a listing posted or re-checked (checked_at) in the last 3 days.
 // A release date in happens doesn't keep an old preorder price up on its own.
+const dealOf = (r, ignoreMarket) => tierDeal(r, ignoreMarket);
 const DEAL_GONE = /sold out(?! fast)|listing removed|no longer available|preorders? closed|unavailable|\bended\b|expired/i;
 const dealSeen = (r) => Math.max(new Date(r.at).getTime() || 0, new Date(r.checked_at || 0).getTime() || 0);
 const dealLive = (r) => {
@@ -1066,19 +1136,20 @@ const fmtSeen = (t) => new Date(t).toLocaleString('en-US', { timeZone: 'America/
 const fmtET = (s) => { const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; };
 function drawDeals(rows) {
   const sec = root.querySelector('#deals'), list = root.querySelector('#deals-list');
-  const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => b.d.room / b.d.limit - a.d.room / a.d.limit);
+  const deals = rows.map((r) => ({ r, d: dealOf(r) })).filter((x) => x.d && dealLive(x.r)).sort((a, b) => b.d.t.rank - a.d.t.rank || b.d.save - a.d.save);
   // For the scan: products of every live deal before the market cap (so their market price gets looked up), and the deals shown.
   CG.dealProducts = rows.filter((r) => dealLive(r) && dealOf(r, true)).map(anProduct).filter(Boolean).map(anDesc);
-  CG.deals = deals.map(({ r, d }) => ({ headline: r.headline, game: r.game, where: r.where, url: r.url, price: d.price, msrp: d.msrp, label: d.label, cls: d.cls, limit: d.limit, room: d.room, market: d.market }));
+  CG.deals = deals.map(({ r, d }) => ({ headline: r.headline, game: r.game, where: r.where, url: r.url, price: d.price, msrp: d.msrp, label: d.label, cls: d.cls, limit: d.limit, room: d.room, market: d.market, tier: d.tier, tier_name: d.t.name, pill: dealPill(d, false), source: r.source || 'news' }));
   list.replaceChildren(...deals.map(({ r, d }) => {
-    const li = el('li');
+    const li = el('li', 'has-tier t-' + d.tier);
     const hits = linkHL(li, r.headline, r.url, r.game);
     const meta = el('div', 'd-meta');
+    meta.appendChild(el('span', 'tier-badge t-' + d.tier, d.t.name));
     const b = el('b', null, '$' + d.price.toFixed(2)); meta.appendChild(b);
     meta.appendChild(el('span', null, d.label));
     if (d.msrp != null) meta.appendChild(el('span', null, 'MSRP $' + d.msrp.toFixed(2)));
     if (d.market) { const mk = el(d.market.url ? 'a' : 'span', 'd-mkt', d.market.source + ' market $' + d.market.price.toFixed(2)); if (d.market.url) { mk.href = d.market.url; mk.target = '_blank'; mk.rel = 'noopener noreferrer'; } meta.appendChild(mk); }
-    meta.appendChild(el('span', 'deal-pill', dealPill(d, false)));
+    meta.appendChild(el('span', 'deal-pill tiered t-' + d.tier, dealPill(d, false)));
     if (r.where) meta.appendChild(el('span', null, r.where));
     if (r.happens && r.happens.length > 10) meta.appendChild(el('span', null, 'ends ' + fmtET(r.happens)));
     meta.appendChild(el('span', null, (r.checked_at && new Date(r.checked_at) > new Date(r.at) ? 'checked ' : 'posted ') + fmtSeen(dealSeen(r))));
@@ -1097,7 +1168,7 @@ function drawDeals(rows) {
 const AN_LANG = /\b(Japanese|Simplified Chinese|Traditional Chinese|Chinese|Spanish|Korean|Thai|Indonesian|French|German|Italian|Portuguese)\b/i;
 const AN_TYPE = { upc: 'Ultra-Premium Collection', etb: 'Elite Trainer Box', bundle: 'Booster bundle', double_pack: 'Double Pack', tin: 'Tin', sleeved_pack: 'Sleeved booster pack' };
 const AN_SEALED = /ultra[- ]premium collection|poster collection|premium collection|special collection|illustration collection|figure collection|pin collection|binder collection|ex box|blister|battle decks?|collection box|premium deck set|illustration box|starter deck|premium card collection|tin 4-pack|mini tins?/i;
-const AN_BOXSUB = /(collector|play|draft|set|jumpstart|beam me up|premium|precious|extra) booster (?:box|display)|booster case|case of \d+|\bcase\b/i;
+const AN_BOXSUB = /(collector|play|draft|set|jumpstart|beam me up|premium|precious|extra|half) booster (?:box|display)|booster case|case of \d+|\bcase\b/i;
 const AN_ANYTYPE = /ultra[- ]premium collections?|\bUPC\b|poster collection|premium collection|special collection|illustration collection|figure collections?|pin collection|binder collection|ex box(?:es)?|blisters?|battle decks?|premium deck set|illustration box|starter deck|elite trainer box(?:es)?|\bETBs?\b|booster bundles?|booster (?:box|boxes|display)|display box|double packs?|\btins?\b|sleeved (?:booster )?packs?/gi;
 const AN_MULTI = /set of \d|\b\d+[- ]pack\b|\b\d+ mini tins|case of \d|\bcase\b|\+ \d+ promos/i;
 const AN_PRICE = /(?<![A-Za-z])\$\s?(\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?)/;
@@ -1152,6 +1223,7 @@ function drawTop(rows) {
   const ranked = [...groups.values()].map((g) => { g.sources = new Set(g.rows.map((x) => x.r.where)).size; return g; })
     .sort((a, b) => b.score - a.score || b.sources - a.sources || new Date(b.rows[0].r.at) - new Date(a.rows[0].r.at));
   const top = ranked.slice(0, 20);
+  HOT = new Set(ranked.slice(0, 10).map((g) => g.key));
   CG.top = ranked.slice(0, 40).map(anDesc); // the scan looks up market prices for these (a few spares in case the ranking shifts)
   const maxScore = top.length ? top[0].score : 1;
   list.replaceChildren(...top.map((g, i) => {
@@ -1214,7 +1286,7 @@ function drawTop(rows) {
     wc.appendChild(bb);
     const chips = el('div', 'an-chips');
     items.slice(0, 8).forEach((x) => {
-      const a = anLink('', x.r.url, x.r.headline + ' · ' + fmtPosted(x.r.at)); a.className = 'an-chip' + (x.out ? ' out' : '');
+      const a = anLink('', x.r.url, x.r.headline + ' · ' + fmtPosted(x.r.at)); a.className = 'an-chip' + (x.out ? ' out' : ''); const xd = !x.out && dealLive(x.r) ? dealOf(x.r) : null; if (xd) { a.classList.add('t-' + xd.tier); a.title = xd.t.name + ' deal · ' + dealPill(xd, false) + ' · ' + a.title; }
       a.appendChild(document.createTextNode(x.r.where)); if (x.price != null) a.appendChild(el('b', null, anMoney(x.price)));
       chips.appendChild(a);
     });
@@ -1424,17 +1496,23 @@ dash.onData(() => {
   }
 
   // News panels
-  const news = dash.data('news'), mkd = dash.data('market'), kwd = dash.data('keywords');
+  const news = dash.data('news'), mkd = dash.data('market'), kwd = dash.data('keywords'), sdd = dash.data('store_deals');
   // Wait for market.json and keywords.json (products are named from the keywords; a missing file just means
   // no market prices) so an above-market deal never flashes up.
   if (mkd.status !== 'loading') MARKET = new Map(mkd.status === 'ok' ? mkd.data.filter((m) => m && m.key && Number(m.market_price) > 0).map((m) => [m.key, m]) : []);
-  if (news.status === 'ok' && mkd.status !== 'loading' && kwd.status !== 'loading') {
+  if (news.status === 'ok' && mkd.status !== 'loading' && kwd.status !== 'loading' && sdd.status !== 'loading') {
     const all = news.data.filter((r) => gameOk(r.game)).slice().sort((a, b) => new Date(b.at) - new Date(a.at));
-    drawDeals(all);
+    // Official MSRPs the scan recorded, by product (and by TCGplayer product name), for rows that don't carry one.
+    MSRP = new Map();
+    news.data.forEach((r) => { if (Number(r.msrp) > 0 && r.msrp_source) { const k = prodKey(r); if (k && !MSRP.has(k)) MSRP.set(k, Number(r.msrp)); if (r.market_product && !MSRP.has(r.market_product)) MSRP.set(r.market_product, Number(r.msrp)); } });
     drawTop(all);
+    // Deals = news rows + the store sweep (data/store_deals.json, replaced every scan); a sweep row wins on the same url.
+    const sweep = sdd.status === 'ok' ? sdd.data.filter((r) => r && gameOk(r.game)) : [];
+    const sweepUrls = new Set(sweep.map((r) => r.url));
+    drawDeals([...sweep, ...all.filter((r) => !sweepUrls.has(r.url))]);
     const seenK = new Set(); CG.wanted = [...CG.top, ...CG.dealProducts].filter((p) => !seenK.has(p.key) && seenK.add(p.key));
     CG.ready = true;
-    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal'); const pdl = el('span', 'deal-pill', '💰 ' + dealPill(dl, true)); pdl.title = dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : ' · limit $' + dl.limit) + (dl.market ? ' · ' + dl.market.source + ' market $' + dl.market.price.toFixed(2) : ''); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
+    const headline = (r) => { const td = el('td', 'h'); const hits = linkHL(td, r.headline, r.url, r.game); const dl = dealLive(r) ? dealOf(r) : null; if (dl) { td.classList.add('is-deal', 't-' + dl.tier); const pdl = el('span', 'deal-pill tiered t-' + dl.tier, '💰 ' + dl.t.name + ' · ' + dealPill(dl, true)); pdl.title = dl.t.name + ' deal · ' + dl.label + ' · $' + dl.price.toFixed(2) + (dl.msrp != null ? ' vs MSRP $' + dl.msrp.toFixed(2) + (r.msrp_source ? ' · ' + r.msrp_source : '') : dl.limit != null ? ' · limit $' + dl.limit : '') + (dl.market ? ' · ' + dl.market.source + ' market $' + dl.market.price.toFixed(2) : ''); td.appendChild(document.createTextNode(' ')); td.appendChild(pdl); } if (r.jp_only === 'Yes') { const j = el('span', 'jp-only', '🇯🇵 JP exclusive'); j.title = r.jp_note || 'No US release'; td.appendChild(document.createTextNode(' ')); td.appendChild(j); } const tg = kwTags(hits); if (tg) td.appendChild(tg); return td; };
     const posted = (r) => el('td', 'ch-when', fmtPosted(r.at));
     const checkCell = (r) => {
       const td = el('td');
