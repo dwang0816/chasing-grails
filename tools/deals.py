@@ -216,7 +216,7 @@ def match_title(title, game, lang, ptype, cache):
             # Every distinctive word in the TCGplayer name must be in the listing title (so "Enhanced",
             # "Pokemon Center", "Half" or another variant is never matched to a plain listing).
             tw = set(norm(title).split())
-            extra_words = [w for w in tokens(r.get('productName', '')) if w not in tw and not codes(w) and w not in ('retail',)]
+            extra_words = [w for w in tokens(r.get('productName', '')) if w not in tw and not codes(w) and w not in ('retail', 'ex', 'v', 'gx')]
             if extra_words:
                 continue
             words = set(hay.split())
