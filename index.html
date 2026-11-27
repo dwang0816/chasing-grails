@@ -366,7 +366,7 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 }
 
 /* Deals alert */
-.ch-deals { border: 1px solid color-mix(in srgb, #22c55e 55%, transparent); background: linear-gradient(135deg, color-mix(in srgb, #22c55e 14%, var(--color-bg)), var(--color-bg) 75%); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.ch-deals { border: 1px solid color-mix(in srgb, var(--color-fg) 18%, transparent); background: var(--color-bg); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
 .ch-deals-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-weight: 700; font-size: var(--cds-font-size-heading); }
 .ch-deals-head .sub { font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .ch-deals ul { list-style: none; margin: var(--cds-gap-sm) 0 0; padding: 0; display: grid; gap: var(--cds-gap-sm); }
@@ -460,8 +460,8 @@ a.ch-ticket.t-on::after { content: " ↗" !important; color: inherit; }
 .an-hid { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 4px; }
 .d-meta a.d-mkt { color: inherit; }
 .tier-badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; background: var(--t); color: var(--ti); vertical-align: 1px; white-space: nowrap; }
-.ch-deals li.has-tier { border-left: 4px solid var(--t); padding-left: 10px; border-top-style: solid; }
-.ch-deals li.has-tier:first-child { padding-top: 0; }
+/* Each deal card is tinted in its own tier colour (God red ... Common grey). */
+.ch-deals li.has-tier, .ch-deals li.has-tier:first-child { background: color-mix(in srgb, var(--t) 13%, var(--color-bg)); border: 1px solid color-mix(in srgb, var(--t) 45%, transparent); border-left: 4px solid var(--t); border-radius: 8px; padding: 8px 12px; }
 .tier-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-weight: 400; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .tier-legend span { white-space: nowrap; }
 .deal-pill.tiered { background: var(--t); color: var(--ti); }
